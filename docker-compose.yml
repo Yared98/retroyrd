@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  retro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: internal-retro
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - DATABASE_URL=/app/data/retro.db
+      - STATIC_DIR=/app/dist
+      - RUST_LOG=backend=info,tower_http=info
+    volumes:
+      - retro_data:/app/data
+
+volumes:
+  retro_data:
+    driver: local
