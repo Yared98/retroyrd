@@ -95,6 +95,20 @@ export const Header: React.FC<HeaderProps> = ({
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-went-well)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 LIVE SESSÃO
               </span>
+              {isFacilitator && (
+                <span style={{
+                  background: 'rgba(234, 179, 8, 0.15)',
+                  border: '1px solid rgba(234, 179, 8, 0.4)',
+                  color: '#fef08a',
+                  padding: '0.1rem 0.45rem',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.02em',
+                }}>
+                  👑 FACILITADOR
+                </span>
+              )}
             </div>
             <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
               {title}

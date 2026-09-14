@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Check } from 'lucide-react';
-import type { SafetyCheckSummary } from '../types';
+import { ShieldCheck, Lock, Check, Crown, ArrowRight, Eye, BarChart2 } from 'lucide-react';
+import type { SafetyCheckSummary, BoardPhase } from '../types';
 
 interface SafetyCheckModalProps {
   hasVoted: boolean;
   isFacilitator: boolean;
   safetySummary?: SafetyCheckSummary | null;
   onSubmit: (score: number) => void;
+  onNextPhase?: (nextPhase: BoardPhase) => void;
 }
 
 const SCORES = [
@@ -22,16 +23,67 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
   isFacilitator,
   safetySummary,
   onSubmit,
+  onNextPhase,
 }) => {
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(hasVoted);
+  const [activeTab, setActiveTab] = useState<'VOTE' | 'FACILITATOR_RESULTS'>(
+    isFacilitator && (safetySummary?.count ?? 0) > 0 ? 'FACILITATOR_RESULTS' : 'VOTE'
+  );
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const handleSubmit = () => {
     if (selectedScore !== null) {
       onSubmit(selectedScore);
       setSubmitted(true);
+      if (isFacilitator) {
+        setActiveTab('FACILITATOR_RESULTS');
+      }
     }
   };
+
+  if (isMinimized) {
+    return (
+      <div style={{
+        position: 'fixed',
+        bottom: '1.5rem',
+        right: '1.5rem',
+        zIndex: 50,
+      }}>
+        <button
+          onClick={() => setIsMinimized(false)}
+          className="glass-panel"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            padding: '0.75rem 1.25rem',
+            borderRadius: 'var(--radius-full)',
+            color: 'var(--text-main)',
+            border: '1px solid var(--color-primary)',
+            boxShadow: '0 0 20px var(--color-primary-glow)',
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: '0.85rem',
+          }}
+        >
+          <ShieldCheck size={18} color="var(--color-primary)" />
+          <span>Abrir Checagem de Segurança</span>
+          {isFacilitator && (
+            <span style={{
+              background: 'rgba(234, 179, 8, 0.2)',
+              color: '#fef08a',
+              padding: '0.1rem 0.4rem',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.7rem',
+            }}>
+              Facilitador
+            </span>
+          )}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -45,180 +97,375 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
       zIndex: 50,
       padding: '1.5rem',
     }}>
-      <div className="glass-modal" style={{ maxWidth: 640, width: '100%', padding: '2rem' }}>
-        {/* Cabeçalho */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+      <div className="glass-modal" style={{ maxWidth: 680, width: '100%', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
+        {/* Badge de Facilitador */}
+        {isFacilitator && (
           <div style={{
-            background: 'rgba(99, 102, 241, 0.15)',
-            border: '1px solid rgba(99, 102, 241, 0.3)',
-            borderRadius: 'var(--radius-md)',
-            padding: '0.5rem',
-            display: 'flex',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: 'rgba(234, 179, 8, 0.15)',
+            border: '1px solid rgba(234, 179, 8, 0.4)',
+            color: '#fef08a',
+            padding: '0.25rem 0.65rem',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.75rem',
+            fontWeight: 800,
+            marginBottom: '1rem',
           }}>
-            <ShieldCheck size={24} color="var(--color-primary)" />
+            <Crown size={14} color="#facc15" />
+            <span>VOCÊ É O FACILITADOR DESTA SESSÃO</span>
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Fase 1: Checagem de Segurança Psicológica
+        )}
+
+        {/* Cabeçalho */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{
+              background: 'rgba(99, 102, 241, 0.15)',
+              border: '1px solid rgba(99, 102, 241, 0.3)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.5rem',
+              display: 'flex',
+            }}>
+              <ShieldCheck size={24} color="var(--color-primary)" />
             </div>
-            <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-              Como você se sente para falar abertamente hoje?
-            </h2>
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Fase 1: Checagem de Segurança Psicológica
+              </div>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+                Como você se sente para falar abertamente hoje?
+              </h2>
+            </div>
           </div>
+
+          {/* Minimizar para espiar board */}
+          <button
+            onClick={() => setIsMinimized(true)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-muted)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.4rem 0.75rem',
+              cursor: 'pointer',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              flexShrink: 0,
+            }}
+            title="Minimizar e espiar o board"
+          >
+            <Eye size={14} />
+            <span>Espiar Board</span>
+          </button>
         </div>
 
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-          Retrospectivas produtivas dependem de honestidade sem medo de julgamentos ou retaliações. Sua resposta é crucial para calibrar a dinâmica da cerimônia.
-        </p>
-
-        {/* Garantia de Anonimato Inviolável */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.6rem',
-          background: 'rgba(16, 185, 129, 0.08)',
-          border: '1px solid rgba(16, 185, 129, 0.25)',
-          padding: '0.75rem 1rem',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: '1.5rem',
-        }}>
-          <Lock size={18} color="var(--color-went-well)" />
-          <span style={{ fontSize: '0.8rem', color: '#a7f3d0', lineHeight: '1.4' }}>
-            <strong>100% Confidencial e Anônimo:</strong> Nenhum IP, usuário ou identificador de sessão é armazenado junto com a sua nota. Apenas a distribuição agregada da equipe é exibida.
-          </span>
-        </div>
-
-        {/* Formulário de Voto */}
-        {!submitted ? (
-          <div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.5rem' }}>
-              {SCORES.map((item) => {
-                const isSelected = selectedScore === item.value;
-                return (
-                  <div
-                    key={item.value}
-                    onClick={() => setSelectedScore(item.value)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.75rem 1rem',
-                      borderRadius: 'var(--radius-md)',
-                      background: isSelected ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.03)',
-                      border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                      <div style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: '50%',
-                        background: isSelected ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.06)',
-                        color: isSelected ? '#ffffff' : 'var(--text-muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 700,
-                        fontSize: '0.875rem',
-                      }}>
-                        {item.value}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                          {item.title}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                          {item.desc}
-                        </div>
-                      </div>
-                    </div>
-                    {isSelected && <Check size={18} color="var(--color-primary)" />}
-                  </div>
-                );
-              })}
-            </div>
-
+        {/* Abas para Facilitador (Votar vs Ver Resultados) */}
+        {isFacilitator && (
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            background: 'rgba(0, 0, 0, 0.3)',
+            padding: '0.25rem',
+            borderRadius: 'var(--radius-md)',
+            marginBottom: '1.25rem',
+          }}>
             <button
-              disabled={selectedScore === null}
-              onClick={handleSubmit}
+              onClick={() => setActiveTab('VOTE')}
               style={{
-                width: '100%',
-                padding: '0.85rem',
-                borderRadius: 'var(--radius-md)',
-                background: selectedScore !== null ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.1)',
+                flex: 1,
+                padding: '0.4rem',
+                borderRadius: 'var(--radius-sm)',
                 border: 'none',
-                color: '#ffffff',
-                fontSize: '0.95rem',
+                background: activeTab === 'VOTE' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                color: activeTab === 'VOTE' ? 'var(--color-primary)' : 'var(--text-dim)',
                 fontWeight: 700,
-                cursor: selectedScore !== null ? 'pointer' : 'not-allowed',
-                boxShadow: selectedScore !== null ? '0 0 20px var(--color-primary-glow)' : 'none',
-                transition: 'all 0.15s',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
               }}
             >
-              Enviar Avaliação Confidencial
+              Meu Voto
+            </button>
+            <button
+              onClick={() => setActiveTab('FACILITATOR_RESULTS')}
+              style={{
+                flex: 1,
+                padding: '0.4rem',
+                borderRadius: 'var(--radius-sm)',
+                border: 'none',
+                background: activeTab === 'FACILITATOR_RESULTS' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                color: activeTab === 'FACILITATOR_RESULTS' ? 'var(--color-primary)' : 'var(--text-dim)',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem',
+              }}
+            >
+              <BarChart2 size={14} />
+              <span>Resultados da Equipe ({safetySummary?.count || 0})</span>
             </button>
           </div>
-        ) : (
-          <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-            <div style={{
-              display: 'inline-flex',
-              padding: '0.75rem',
-              borderRadius: '50%',
-              background: 'rgba(16, 185, 129, 0.15)',
-              marginBottom: '1rem',
-            }}>
-              <Check size={32} color="var(--color-went-well)" />
-            </div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
-              Voto Registrado com Sucesso!
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
-              Obrigado pela sinceridade. Aguarde o facilitador avançar a cerimônia para a fase de Brainstorm.
+        )}
+
+        {/* VISÃO 1: FORMULÁRIO DE VOTO */}
+        {activeTab === 'VOTE' && (
+          <>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
+              Retrospectivas produtivas dependem de honestidade sem medo de julgamentos ou retaliações. Sua resposta é crucial para calibrar a dinâmica da cerimônia.
             </p>
 
-            {/* Se for Facilitador, exibe a distribuição acumulada */}
-            {isFacilitator && safetySummary && (
-              <div style={{
-                background: 'rgba(0, 0, 0, 0.3)',
-                padding: '1.25rem',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
-                textAlign: 'left',
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                    Resumo Agregado (Facilitador)
-                  </span>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-went-well)' }}>
-                    Média: {safetySummary.average.toFixed(1)} / 5.0 ({safetySummary.count} votos)
-                  </span>
-                </div>
+            {/* Garantia de Anonimato Inviolável */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              padding: '0.65rem 0.85rem',
+              borderRadius: 'var(--radius-md)',
+              marginBottom: '1.25rem',
+            }}>
+              <Lock size={16} color="var(--color-went-well)" />
+              <span style={{ fontSize: '0.78rem', color: '#a7f3d0', lineHeight: '1.4' }}>
+                <strong>100% Confidencial:</strong> Nenhum IP, usuário ou identificador de sessão é armazenado junto com a nota.
+              </span>
+            </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  {[5, 4, 3, 2, 1].map((scoreNum) => {
-                    const count = safetySummary.distribution[scoreNum - 1] || 0;
-                    const percent = safetySummary.count > 0 ? (count / safetySummary.count) * 100 : 0;
+            {!submitted ? (
+              <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  {SCORES.map((item) => {
+                    const isSelected = selectedScore === item.value;
                     return (
-                      <div key={scoreNum} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem' }}>
-                        <span style={{ width: 45, color: 'var(--text-muted)' }}>Nota {scoreNum}:</span>
-                        <div style={{ flex: 1, height: 8, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 4, overflow: 'hidden' }}>
+                      <div
+                        key={item.value}
+                        onClick={() => setSelectedScore(item.value)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0.65rem 0.85rem',
+                          borderRadius: 'var(--radius-md)',
+                          background: isSelected ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                          border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                           <div style={{
-                            width: `${percent}%`,
-                            height: '100%',
-                            background: scoreNum >= 4 ? 'var(--color-went-well)' : scoreNum === 3 ? 'var(--color-primary)' : 'var(--color-to-improve)',
-                            transition: 'width 0.3s ease',
-                          }} />
+                            width: 26,
+                            height: 26,
+                            borderRadius: '50%',
+                            background: isSelected ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.06)',
+                            color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontWeight: 700,
+                            fontSize: '0.8rem',
+                          }}>
+                            {item.value}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                              {item.title}
+                            </div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                              {item.desc}
+                            </div>
+                          </div>
                         </div>
-                        <span style={{ width: 30, textAlign: 'right', color: 'var(--text-dim)', fontFamily: 'var(--font-mono)' }}>
-                          {count}
-                        </span>
+                        {isSelected && <Check size={16} color="var(--color-primary)" />}
                       </div>
                     );
                   })}
                 </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    disabled={selectedScore === null}
+                    onClick={handleSubmit}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: selectedScore !== null ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.1)',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      cursor: selectedScore !== null ? 'pointer' : 'not-allowed',
+                      boxShadow: selectedScore !== null ? '0 0 20px var(--color-primary-glow)' : 'none',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    Enviar Minha Avaliação
+                  </button>
+
+                  {/* Se for Facilitador, pode pular o voto e avançar direto */}
+                  {isFacilitator && onNextPhase && (
+                    <button
+                      onClick={() => onNextPhase('BRAINSTORM')}
+                      style={{
+                        padding: '0.75rem 1.25rem',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'rgba(16, 185, 129, 0.2)',
+                        border: '1px solid var(--color-went-well)',
+                        color: '#6ee7b7',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.4rem',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      <span>Avançar Fase →</span>
+                    </button>
+                  )}
+                </div>
               </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '1rem 0' }}>
+                <div style={{
+                  display: 'inline-flex',
+                  padding: '0.65rem',
+                  borderRadius: '50%',
+                  background: 'rgba(16, 185, 129, 0.15)',
+                  marginBottom: '0.75rem',
+                }}>
+                  <Check size={28} color="var(--color-went-well)" />
+                </div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                  Avaliação Registrada!
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                  {isFacilitator
+                    ? 'Como facilitador, você pode monitorar a distribuição abaixo e avançar para o Brainstorm.'
+                    : 'Aguarde o facilitador avançar a sessão para a fase de Brainstorming.'}
+                </p>
+
+                {isFacilitator && onNextPhase && (
+                  <button
+                    onClick={() => onNextPhase('BRAINSTORM')}
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--color-went-well)',
+                      border: 'none',
+                      color: '#002113',
+                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+                    }}
+                  >
+                    <span>Iniciar Fase 2: Brainstorming (Modo Cego)</span>
+                    <ArrowRight size={18} />
+                  </button>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* VISÃO 2: RESULTADOS AGREGADOS (PAINEL DO FACILITADOR) */}
+        {activeTab === 'FACILITATOR_RESULTS' && isFacilitator && (
+          <div>
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.4)',
+              padding: '1.25rem',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border-subtle)',
+              marginBottom: '1.5rem',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
+                    Sentimento da Equipe
+                  </span>
+                  <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-went-well)', marginTop: '0.2rem' }}>
+                    {safetySummary && safetySummary.count > 0 ? `${safetySummary.average.toFixed(1)} / 5.0` : 'Sem votos'}
+                  </div>
+                </div>
+
+                <div style={{
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  padding: '0.4rem 0.75rem',
+                  borderRadius: 'var(--radius-full)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                }}>
+                  {safetySummary?.count || 0} avaliações recebidas
+                </div>
+              </div>
+
+              {/* Barras de Distribuição */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {[5, 4, 3, 2, 1].map((scoreNum) => {
+                  const count = safetySummary?.distribution[scoreNum - 1] || 0;
+                  const total = safetySummary?.count || 0;
+                  const percent = total > 0 ? (count / total) * 100 : 0;
+                  return (
+                    <div key={scoreNum} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem' }}>
+                      <span style={{ width: 50, color: 'var(--text-muted)' }}>Nota {scoreNum}:</span>
+                      <div style={{ flex: 1, height: 10, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 5, overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${percent}%`,
+                          height: '100%',
+                          background: scoreNum >= 4 ? 'var(--color-went-well)' : scoreNum === 3 ? 'var(--color-primary)' : 'var(--color-to-improve)',
+                          transition: 'width 0.3s ease',
+                        }} />
+                      </div>
+                      <span style={{ width: 40, textAlign: 'right', color: 'var(--text-main)', fontFamily: 'var(--font-mono)', fontWeight: 700 }}>
+                        {count} ({percent.toFixed(0)}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Ação do Facilitador: Avançar Fase */}
+            {onNextPhase && (
+              <button
+                onClick={() => onNextPhase('BRAINSTORM')}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  background: 'var(--color-went-well)',
+                  border: 'none',
+                  color: '#002113',
+                  fontSize: '0.95rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>Encerrar Checagem e Iniciar Brainstorming (Modo Cego)</span>
+                <ArrowRight size={18} />
+              </button>
             )}
           </div>
         )}

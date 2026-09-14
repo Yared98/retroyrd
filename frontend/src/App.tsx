@@ -26,6 +26,9 @@ export function App() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [showMcpDrawer, setShowMcpDrawer] = useState(false);
+  const [hasVotedSafety, setHasVotedSafety] = useState(() => {
+    return boardId ? sessionStorage.getItem(`safety_voted_${boardId}`) === 'true' : false;
+  });
 
   const {
     snapshot,
@@ -130,10 +133,15 @@ export function App() {
       {/* Fase 1: Modal de Safety Check (se a fase atual for SAFETY_CHECK) */}
       {board.phase === 'SAFETY_CHECK' && (
         <SafetyCheckModal
-          hasVoted={false}
+          hasVoted={hasVotedSafety}
           isFacilitator={is_facilitator}
           safetySummary={safety_summary}
-          onSubmit={submitSafety}
+          onSubmit={(score) => {
+            submitSafety(score);
+            setHasVotedSafety(true);
+            if (boardId) sessionStorage.setItem(`safety_voted_${boardId}`, 'true');
+          }}
+          onNextPhase={(nextPhase: BoardPhase) => changePhase(nextPhase)}
         />
       )}
 
