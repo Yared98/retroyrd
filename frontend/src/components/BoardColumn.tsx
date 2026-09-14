@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Column, Card, BoardPhase } from '../types';
 import { RetroCardItem } from './RetroCardItem';
-import { Plus } from 'lucide-react';
+import { Plus, Layers } from 'lucide-react';
 
 interface BoardColumnProps {
   column: Column;
@@ -13,6 +13,8 @@ interface BoardColumnProps {
   onVoteCard: (cardId: string) => void;
   onUpdateCard: (cardId: string, content: string) => void;
   onDeleteCard: (cardId: string) => void;
+  onGroupCards?: (parentCardId: string, childCardIds: string[]) => void;
+  onUngroupCard?: (cardId: string) => void;
 }
 
 export const BoardColumn: React.FC<BoardColumnProps> = ({
@@ -25,6 +27,8 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   onVoteCard,
   onUpdateCard,
   onDeleteCard,
+  onGroupCards,
+  onUngroupCard,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [content, setContent] = useState('');
@@ -39,6 +43,10 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   };
 
   const isBrainstorm = phase === 'BRAINSTORM';
+  const isGrouping = phase === 'GROUPING';
+
+  // Separar cards raiz dos cards filhos agrupados
+  const topLevelCards = cards.filter((c) => !c.parent_card_id);
 
   return (
     <div style={{
@@ -48,12 +56,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       display: 'flex',
       flexDirection: 'column',
       background: 'rgba(15, 23, 42, 0.4)',
-      border: '1px solid var(--border-subtle)',
+      border: isGrouping ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-lg)',
       padding: '1.25rem',
       gap: '1rem',
       height: 'fit-content',
       maxHeight: 'calc(100vh - 120px)',
+      boxShadow: isGrouping ? '0 0 20px rgba(99, 102, 241, 0.08)' : 'none',
+      transition: 'all 0.2s ease',
     }}>
       {/* Cabeçalho da Coluna */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -76,7 +86,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             borderRadius: 'var(--radius-full)',
             color: 'var(--text-dim)',
           }}>
-            {cards.length}
+            {topLevelCards.length}
           </span>
         </div>
 
@@ -98,9 +108,24 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             <Plus size={15} />
           </button>
         )}
+
+        {/* Dica da fase de grouping */}
+        {isGrouping && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.3rem',
+            color: 'var(--color-primary)',
+            fontSize: '0.7rem',
+            fontWeight: 600,
+          }}>
+            <Layers size={13} />
+            <span>Arraste para mesclar</span>
+          </div>
+        )}
       </div>
 
-      {/* Formulário de inserção rápida */}
+      {/* Formulário de inserção rápida em Brainstorm */}
       {isBrainstorm && isAdding && (
         <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <textarea
@@ -162,7 +187,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         </form>
       )}
 
-      {/* Lista de Cards da Coluna com rolagem interna */}
+      {/* Lista de Cards com suporte a Clusters */}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
@@ -170,7 +195,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
         overflowY: 'auto',
         paddingRight: '0.25rem',
       }}>
-        {cards.length === 0 ? (
+        {topLevelCards.length === 0 ? (
           <div style={{
             textAlign: 'center',
             padding: '2rem 1rem',
@@ -182,20 +207,24 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             Nenhum card ainda nesta coluna.
           </div>
         ) : (
-          cards.map((card) => {
+          topLevelCards.map((card) => {
             const hasVoted = userVotedCardIds.includes(card.id);
             const canEdit = sessionHash ? card.author_session_hash === sessionHash : false;
+            const childCards = cards.filter((c) => c.parent_card_id === card.id);
 
             return (
               <RetroCardItem
                 key={card.id}
                 card={card}
+                childCards={childCards}
                 phase={phase}
                 hasVoted={hasVoted}
                 canEdit={canEdit}
                 onVote={onVoteCard}
                 onUpdate={onUpdateCard}
                 onDelete={onDeleteCard}
+                onGroupCards={onGroupCards}
+                onUngroupCard={onUngroupCard}
               />
             );
           })

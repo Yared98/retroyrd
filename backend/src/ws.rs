@@ -297,6 +297,16 @@ async fn process_client_message(
             }
         }
 
+        "CARD_UNGROUP" => {
+            if !FsmGuard::can_group_cards(board.phase) {
+                return;
+            }
+            if let Some(card_id) = msg.payload.get("card_id").and_then(|v| v.as_str()) {
+                let _ = state.db.ungroup_card(card_id);
+                broadcast_sync_to_room(state, board_id, room_sender).await;
+            }
+        }
+
         "VOTE_TOGGLE" => {
             if !FsmGuard::can_vote(board.phase) {
                 return;

@@ -38,6 +38,8 @@ export function App() {
     updateCard,
     deleteCard,
     toggleVote,
+    groupCards,
+    ungroupCard,
     createAction,
     updateActionStatus,
     changePhase,
@@ -156,6 +158,52 @@ export function App() {
         flexDirection: 'column',
         gap: '2rem',
       }}>
+        {/* Banner Explicativo da Fase de Grouping */}
+        {board.phase === 'GROUPING' && (
+          <div style={{
+            background: 'rgba(99, 102, 241, 0.12)',
+            border: '1px solid rgba(99, 102, 241, 0.35)',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.85rem 1.25rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            flexWrap: 'wrap',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '1.25rem' }}>🗂️</span>
+              <div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  Fase 3: Agrupamento de Ideias Similares (Grouping)
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  Todos os cards foram revelados! <strong>Arraste um card e solte sobre outro</strong> para agrupá-los em um cluster e evitar votos dispersos.
+                </div>
+              </div>
+            </div>
+
+            {is_facilitator && (
+              <button
+                onClick={() => changePhase('VOTING')}
+                style={{
+                  background: 'var(--color-primary)',
+                  border: 'none',
+                  color: '#ffffff',
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 0 12px var(--color-primary-glow)',
+                }}
+              >
+                Concluir Agrupamento e Ir para Votação →
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Visualização de Action Items destacada quando na fase ACTION_ITEMS ou ARCHIVED */}
         {(board.phase === 'ACTION_ITEMS' || board.phase === 'ARCHIVED') && (
           <ActionItemsView
@@ -185,6 +233,8 @@ export function App() {
               onVoteCard={toggleVote}
               onUpdateCard={updateCard}
               onDeleteCard={deleteCard}
+              onGroupCards={groupCards}
+              onUngroupCard={ungroupCard}
             />
           ))}
         </div>

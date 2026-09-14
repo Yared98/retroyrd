@@ -224,6 +224,15 @@ impl Database {
         Ok(())
     }
 
+    pub fn ungroup_card(&self, card_id: &str) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "UPDATE cards SET parent_card_id = NULL WHERE id = ?1",
+            params![card_id],
+        )?;
+        Ok(())
+    }
+
     pub fn get_cards(&self, board_id: &str) -> Result<Vec<Card>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(

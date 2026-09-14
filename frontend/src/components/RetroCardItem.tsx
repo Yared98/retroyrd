@@ -1,28 +1,48 @@
 import React, { useState } from 'react';
 import type { Card, BoardPhase } from '../types';
-import { ThumbsUp, Lock, Trash2, Edit2, Bot, Check, X } from 'lucide-react';
+import { 
+  ThumbsUp, 
+  Lock, 
+  Trash2, 
+  Edit2, 
+  Bot, 
+  Check, 
+  X, 
+  GripVertical, 
+  Layers, 
+  CornerDownRight 
+} from 'lucide-react';
 
 interface RetroCardItemProps {
   card: Card;
+  childCards?: Card[];
   phase: BoardPhase;
   hasVoted: boolean;
   canEdit: boolean;
   onVote: (id: string) => void;
   onUpdate: (id: string, content: string) => void;
   onDelete: (id: string) => void;
+  onGroupCards?: (parentCardId: string, childCardIds: string[]) => void;
+  onUngroupCard?: (cardId: string) => void;
 }
 
 export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   card,
+  childCards = [],
   phase,
   hasVoted,
   canEdit,
   onVote,
   onUpdate,
   onDelete,
+  onGroupCards,
+  onUngroupCard,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(card.content);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const isGrouping = phase === 'GROUPING';
 
   const handleSave = () => {
     if (editContent.trim()) {
@@ -31,7 +51,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
     }
   };
 
-  // 1. Renderização no Modo Cego (Blind Mode) para cards de outros participantes
+  // 1. Renderização no Modo Cego (Blind Mode)
   if (card.is_masked) {
     return (
       <div style={{
@@ -61,7 +81,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           </span>
         </div>
 
-        {/* Silhueta com placeholder pontilhado */}
         <div style={{
           fontFamily: 'var(--font-mono)',
           fontSize: '1.1rem',
@@ -80,59 +99,150 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
     );
   }
 
-  // 2. Renderização normal / revelada
+  // 2. Drag & Drop Handlers (Grouping)
+  const handleDragStart = (e: React.DragEvent) => {
+    if (!isGrouping) return;
+    e.dataTransfer.setData('text/plain', card.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!isGrouping) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (!isDragOver) setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    if (isDragOver) setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    if (!isGrouping) return;
+    e.preventDefault();
+    setIsDragOver(false);
+    const draggedCardId = e.dataTransfer.getData('text/plain');
+
+    if (draggedCardId && draggedCardId !== card.id && onGroupCards) {
+      onGroupCards(card.id, [draggedCardId]);
+    }
+  };
+
+  const totalClusterVotes = card.vote_count + childCards.reduce((sum, c) => sum + c.vote_count, 0);
+
   return (
-    <div style={{
-      background: 'var(--bg-card)',
-      backdropFilter: 'blur(12px)',
-      border: '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-md)',
-      padding: '1rem',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '0.75rem',
-      position: 'relative',
-      transition: 'all 0.15s ease',
-      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.3)',
-    }}>
+    <div
+      draggable={isGrouping && !isEditing}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      style={{
+        background: isDragOver ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-card)',
+        backdropFilter: 'blur(12px)',
+        border: isDragOver
+          ? '2px dashed var(--color-primary)'
+          : childCards.length > 0
+          ? '1px solid rgba(99, 102, 241, 0.4)'
+          : '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-md)',
+        padding: '1rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.75rem',
+        position: 'relative',
+        transition: 'all 0.15s ease',
+        boxShadow: isDragOver
+          ? '0 0 20px var(--color-primary-glow)'
+          : '0 2px 10px rgba(0, 0, 0, 0.3)',
+        cursor: isGrouping ? 'grab' : 'default',
+      }}
+    >
+      {/* Indicador de Drop em Hover */}
+      {isDragOver && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(99, 102, 241, 0.25)',
+          backdropFilter: 'blur(4px)',
+          borderRadius: 'var(--radius-md)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#ffffff',
+          fontWeight: 700,
+          fontSize: '0.85rem',
+          zIndex: 10,
+          pointerEvents: 'none',
+        }}>
+          ➕ Solte para agrupar neste card
+        </div>
+      )}
+
       {/* Header do Card */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.4rem' }}>
-        {card.is_ai_generated ? (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            background: 'rgba(139, 92, 246, 0.15)',
-            border: '1px solid rgba(139, 92, 246, 0.35)',
-            padding: '0.2rem 0.5rem',
-            borderRadius: 'var(--radius-full)',
-            color: '#c4b5fd',
-            fontSize: '0.7rem',
-            fontWeight: 700,
-          }}>
-            <Bot size={12} />
-            <span>Injetado por IA (MCP)</span>
-          </div>
-        ) : phase === 'BRAINSTORM' && canEdit ? (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.35rem',
-            background: 'rgba(16, 185, 129, 0.12)',
-            padding: '0.2rem 0.5rem',
-            borderRadius: 'var(--radius-full)',
-            color: '#6ee7b7',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-          }}>
-            <Lock size={11} />
-            <span>Visível só para você</span>
-          </div>
-        ) : (
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-            Card anônimo
-          </span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          {isGrouping && (
+            <div style={{ color: 'var(--text-dim)', cursor: 'grab' }} title="Arraste para agrupar">
+              <GripVertical size={14} />
+            </div>
+          )}
+
+          {childCards.length > 0 && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'rgba(99, 102, 241, 0.2)',
+              border: '1px solid rgba(99, 102, 241, 0.5)',
+              padding: '0.2rem 0.55rem',
+              borderRadius: 'var(--radius-full)',
+              color: '#c0c1ff',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+            }}>
+              <Layers size={12} />
+              <span>Cluster ({childCards.length + 1} cards)</span>
+            </div>
+          )}
+
+          {card.is_ai_generated ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'rgba(139, 92, 246, 0.15)',
+              border: '1px solid rgba(139, 92, 246, 0.35)',
+              padding: '0.2rem 0.5rem',
+              borderRadius: 'var(--radius-full)',
+              color: '#c4b5fd',
+              fontSize: '0.7rem',
+              fontWeight: 700,
+            }}>
+              <Bot size={12} />
+              <span>Injetado por IA</span>
+            </div>
+          ) : phase === 'BRAINSTORM' && canEdit ? (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'rgba(16, 185, 129, 0.12)',
+              padding: '0.2rem 0.5rem',
+              borderRadius: 'var(--radius-full)',
+              color: '#6ee7b7',
+              fontSize: '0.7rem',
+              fontWeight: 600,
+            }}>
+              <Lock size={11} />
+              <span>Visível só para você</span>
+            </div>
+          ) : (
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+              Card anônimo
+            </span>
+          )}
+        </div>
 
         {/* Ações de Edição/Exclusão (Brainstorm & Autor) */}
         {phase === 'BRAINSTORM' && canEdit && !isEditing && (
@@ -167,7 +277,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         )}
       </div>
 
-      {/* Conteúdo do Card */}
+      {/* Conteúdo Principal do Card */}
       {isEditing ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <textarea
@@ -230,7 +340,63 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         </p>
       )}
 
-      {/* Footer: Votos (fases Voting em diante) */}
+      {/* Sub-cards agrupados sob este card (Cluster) */}
+      {childCards.length > 0 && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.45rem',
+          paddingLeft: '0.5rem',
+          borderLeft: '2px solid rgba(99, 102, 241, 0.4)',
+          marginTop: '0.25rem',
+        }}>
+          {childCards.map((child) => (
+            <div
+              key={child.id}
+              style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                padding: '0.5rem 0.75rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.8rem',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '0.5rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
+                <CornerDownRight size={13} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                <span style={{ wordBreak: 'break-word' }}>{child.content}</span>
+              </div>
+
+              {isGrouping && onUngroupCard && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUngroupCard(child.id);
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-dim)',
+                    cursor: 'pointer',
+                    fontSize: '0.7rem',
+                    padding: '0.15rem 0.35rem',
+                    borderRadius: 'var(--radius-sm)',
+                    flexShrink: 0,
+                  }}
+                  title="Desagrupar este card"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Footer: Votação (VOTING em diante) */}
       {(phase === 'VOTING' || phase === 'ACTION_ITEMS' || phase === 'ARCHIVED') && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0.4rem' }}>
           <button
@@ -252,7 +418,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
             }}
           >
             <ThumbsUp size={12} />
-            <span>{card.vote_count}</span>
+            <span>{totalClusterVotes}</span>
           </button>
         </div>
       )}

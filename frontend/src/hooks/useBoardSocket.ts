@@ -117,6 +117,10 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     send('CARD_GROUP', { parent_card_id: parentCardId, child_card_ids: childCardIds });
   }, [send]);
 
+  const ungroupCard = useCallback((cardId: string) => {
+    send('CARD_UNGROUP', { card_id: cardId });
+  }, [send]);
+
   const createAction = useCallback((description: string, owner?: string) => {
     send('ACTION_CREATE', { description, owner });
   }, [send]);
@@ -138,6 +142,7 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     deleteCard,
     toggleVote,
     groupCards,
+    ungroupCard,
     createAction,
     updateActionStatus,
     changePhase,
