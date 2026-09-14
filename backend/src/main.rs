@@ -177,7 +177,7 @@ async fn export_board_handler(
     let safety = state.db.get_safety_summary(&board_id).ok();
 
     let mut md = format!("# Retrospectiva: {}\n\n", board.title);
-    md.push_str(&format!("* **Data**: {}\n", board.created_at));
+    md.push_str(&format!("* **Data**: {}\n", format_epoch_ms(board.created_at)));
     md.push_str(&format!("* **Fase Final**: {:?}\n", board.phase));
     if let Some(s) = safety {
         md.push_str(&format!("* **Safety Check (Média)**: {:.1} / 5.0 ({} votos)\n", s.average, s.count));
@@ -217,4 +217,41 @@ async fn export_board_handler(
     );
 
     Ok((headers, md))
+}
+
+fn format_epoch_ms(ms: i64) -> String {
+    let secs = ms / 1000;
+    let days_since_epoch = secs / 86400;
+    let time_of_day = secs % 86400;
+    let hours = time_of_day / 3600;
+    let minutes = (time_of_day % 3600) / 60;
+    let seconds = time_of_day % 60;
+
+    let mut year = 1970;
+    let mut days = days_since_epoch;
+    loop {
+        let is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+        let days_in_year = if is_leap { 366 } else { 365 };
+        if days < days_in_year {
+            break;
+        }
+        days -= days_in_year;
+        year += 1;
+    }
+
+    let is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+    let days_in_month = [
+        31, if is_leap { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+    ];
+    let mut month = 1;
+    for &dim in &days_in_month {
+        if days < dim {
+            break;
+        }
+        days -= dim;
+        month += 1;
+    }
+    let day = days + 1;
+
+    format!("{:04}-{:02}-{:02} {:02}:{:02}:{:02} UTC", year, month, day, hours, minutes, seconds)
 }

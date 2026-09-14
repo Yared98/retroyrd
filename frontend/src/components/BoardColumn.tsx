@@ -6,6 +6,7 @@ import { Plus, Layers } from 'lucide-react';
 interface BoardColumnProps {
   column: Column;
   cards: Card[];
+  allCards?: Card[];
   phase: BoardPhase;
   userVotedCardIds: string[];
   sessionHash?: string;
@@ -21,6 +22,7 @@ interface BoardColumnProps {
 export const BoardColumn: React.FC<BoardColumnProps> = ({
   column,
   cards,
+  allCards,
   phase,
   userVotedCardIds,
   sessionHash,
@@ -212,7 +214,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           topLevelCards.map((card) => {
             const hasVoted = userVotedCardIds.includes(card.id);
             const canEdit = sessionHash ? card.author_session_hash === sessionHash : false;
-            const childCards = cards.filter((c) => c.parent_card_id === card.id);
+            const childCards = (allCards || cards).filter((c) => c.parent_card_id === card.id);
 
             return (
               <RetroCardItem

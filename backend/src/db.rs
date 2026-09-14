@@ -249,7 +249,10 @@ impl Database {
         let tx = conn.transaction()?;
         for child_id in child_card_ids {
             tx.execute(
-                "UPDATE cards SET parent_card_id = ?1 WHERE id = ?2",
+                "UPDATE cards 
+                 SET parent_card_id = ?1,
+                     column_id = (SELECT column_id FROM cards WHERE id = ?1)
+                 WHERE id = ?2",
                 params![parent_card_id, child_id],
             )?;
         }
@@ -459,4 +462,155 @@ pub fn chrono_or_now() -> i64 {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as i64
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_db() -> Database {
+        Database::new(":memory:").expect("Failed to create in-memory test database")
+    }
+
+    #[test]
+    fn test_safety_check_summary() {
+        let db = create_test_db();
+        let board_id = "test_board_safety";
+        let board = Board {
+            id: board_id.to_string(),
+            title: "Safety Test".to_string(),
+            phase: BoardPhase::SafetyCheck,
+            facilitator_token: "token123".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+        db.create_board(&board, &[]).unwrap();
+
+        db.submit_safety_check(board_id, 5).unwrap();
+        db.submit_safety_check(board_id, 4).unwrap();
+        db.submit_safety_check(board_id, 5).unwrap();
+        db.submit_safety_check(board_id, 2).unwrap();
+
+        let summary = db.get_safety_summary(board_id).unwrap();
+        assert_eq!(summary.count, 4);
+        assert_eq!(summary.average, 4.0);
+        assert_eq!(summary.distribution[4], 2); // score 5: count 2
+        assert_eq!(summary.distribution[3], 1); // score 4: count 1
+        assert_eq!(summary.distribution[1], 1); // score 2: count 1
+    }
+
+    #[test]
+    fn test_voting_quota_enforcement() {
+        let db = create_test_db();
+        let board_id = "test_board_voting";
+        let board = Board {
+            id: board_id.to_string(),
+            title: "Voting Test".to_string(),
+            phase: BoardPhase::Voting,
+            facilitator_token: "token123".to_string(),
+            max_votes_per_user: 2, // Cota de 2 votos
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+        let cols = [("Col1", "#fff")];
+        db.create_board(&board, &cols).unwrap();
+
+        let columns = db.get_columns(board_id).unwrap();
+        let col_id = &columns[0].id;
+
+        for i in 1..=4 {
+            let card = Card {
+                id: format!("card_{}", i),
+                column_id: col_id.clone(),
+                board_id: board_id.to_string(),
+                content: format!("Card {}", i),
+                author_session_hash: "userA".to_string(),
+                parent_card_id: None,
+                is_masked: false,
+                is_ai_generated: false,
+                vote_count: 0,
+                created_at: 1000 + i,
+            };
+            db.create_card(&card).unwrap();
+        }
+
+        let session_hash = "voter_session";
+
+        // Voto 1: Sucesso
+        assert!(db.toggle_vote(board_id, "card_1", session_hash).unwrap());
+        // Voto 2: Sucesso
+        assert!(db.toggle_vote(board_id, "card_2", session_hash).unwrap());
+        // Voto 3: Rejeitado (cota de 2 atingida)
+        assert!(!db.toggle_vote(board_id, "card_3", session_hash).unwrap());
+
+        // Desmarcar voto 2: Sucesso (voto removido)
+        assert!(!db.toggle_vote(board_id, "card_2", session_hash).unwrap());
+
+        // Agora voto 3 é aceito!
+        assert!(db.toggle_vote(board_id, "card_3", session_hash).unwrap());
+    }
+
+    #[test]
+    fn test_grouping_cards_column_sync() {
+        let db = create_test_db();
+        let board_id = "test_board_grouping";
+        let board = Board {
+            id: board_id.to_string(),
+            title: "Grouping Test".to_string(),
+            phase: BoardPhase::Grouping,
+            facilitator_token: "token123".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+        let cols = [("Went Well", "#10B981"), ("To Improve", "#F43F5E")];
+        db.create_board(&board, &cols).unwrap();
+
+        let columns = db.get_columns(board_id).unwrap();
+        let col1_id = &columns[0].id;
+        let col2_id = &columns[1].id;
+
+        let parent_card = Card {
+            id: "card_parent".to_string(),
+            column_id: col1_id.clone(),
+            board_id: board_id.to_string(),
+            content: "Parent Card".to_string(),
+            author_session_hash: "userA".to_string(),
+            parent_card_id: None,
+            is_masked: false,
+            is_ai_generated: false,
+            vote_count: 0,
+            created_at: 1000,
+        };
+        let child_card = Card {
+            id: "card_child".to_string(),
+            column_id: col2_id.clone(), // Estava na Coluna 2
+            board_id: board_id.to_string(),
+            content: "Child Card".to_string(),
+            author_session_hash: "userB".to_string(),
+            parent_card_id: None,
+            is_masked: false,
+            is_ai_generated: false,
+            vote_count: 0,
+            created_at: 1001,
+        };
+        db.create_card(&parent_card).unwrap();
+        db.create_card(&child_card).unwrap();
+
+        // Agrupar child sob parent
+        db.group_cards("card_parent", &["card_child".to_string()]).unwrap();
+
+        let cards = db.get_cards(board_id).unwrap();
+        let updated_child = cards.iter().find(|c| c.id == "card_child").unwrap();
+        assert_eq!(updated_child.parent_card_id, Some("card_parent".to_string()));
+        // Sincronizado para a coluna do pai (col1)
+        assert_eq!(&updated_child.column_id, col1_id);
+    }
 }

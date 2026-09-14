@@ -16,6 +16,7 @@ use crate::{
 
 #[derive(Debug, Deserialize)]
 pub struct JsonRpcRequest {
+    #[allow(dead_code)]
     pub jsonrpc: String,
     pub id: Option<Value>,
     pub method: String,
@@ -259,6 +260,14 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
             let room_sender = state.get_room_sender(board_id);
 
             if is_action || board.phase == BoardPhase::ActionItems {
+                if !FsmGuard::can_manage_actions(board.phase) {
+                    return Err(JsonRpcError {
+                        code: -32003,
+                        message: format!("Action items can only be created during ACTION_ITEMS phase. Current phase is: {:?}", board.phase),
+                        data: None,
+                    });
+                }
+
                 let item = ActionItem {
                     id: ulid::Ulid::new().to_string(),
                     board_id: board_id.to_string(),
@@ -280,6 +289,14 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
                     }]
                 }))
             } else {
+                if !FsmGuard::can_create_card(board.phase) {
+                    return Err(JsonRpcError {
+                        code: -32003,
+                        message: format!("Cards can only be created during BRAINSTORM phase. Current phase is: {:?}", board.phase),
+                        data: None,
+                    });
+                }
+
                 let column_id = args.get("column_id")
                     .and_then(|v| v.as_str())
                     .map(|s| s.to_string())

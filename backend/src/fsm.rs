@@ -54,7 +54,50 @@ mod tests {
         assert!(FsmGuard::can_transition(BoardPhase::Grouping, BoardPhase::Voting));
         assert!(FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::ActionItems));
         assert!(FsmGuard::can_transition(BoardPhase::ActionItems, BoardPhase::Archived));
+        
+        // Invalid transitions (backwards, skipping, archived)
         assert!(!FsmGuard::can_transition(BoardPhase::Archived, BoardPhase::Brainstorm));
         assert!(!FsmGuard::can_transition(BoardPhase::SafetyCheck, BoardPhase::Voting));
+        assert!(!FsmGuard::can_transition(BoardPhase::Grouping, BoardPhase::Brainstorm));
+        assert!(!FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::Grouping));
+        assert!(!FsmGuard::can_transition(BoardPhase::Archived, BoardPhase::Archived));
+    }
+
+    #[test]
+    fn test_phase_mutation_permissions() {
+        // SAFETY_CHECK
+        assert!(FsmGuard::can_submit_safety(BoardPhase::SafetyCheck));
+        assert!(!FsmGuard::can_create_card(BoardPhase::SafetyCheck));
+        assert!(!FsmGuard::can_vote(BoardPhase::SafetyCheck));
+
+        // BRAINSTORM
+        assert!(!FsmGuard::can_submit_safety(BoardPhase::Brainstorm));
+        assert!(FsmGuard::can_create_card(BoardPhase::Brainstorm));
+        assert!(FsmGuard::can_edit_card(BoardPhase::Brainstorm));
+        assert!(FsmGuard::can_delete_card(BoardPhase::Brainstorm));
+        assert!(!FsmGuard::can_group_cards(BoardPhase::Brainstorm));
+        assert!(!FsmGuard::can_vote(BoardPhase::Brainstorm));
+
+        // GROUPING
+        assert!(!FsmGuard::can_create_card(BoardPhase::Grouping));
+        assert!(FsmGuard::can_group_cards(BoardPhase::Grouping));
+        assert!(!FsmGuard::can_vote(BoardPhase::Grouping));
+
+        // VOTING
+        assert!(!FsmGuard::can_create_card(BoardPhase::Voting));
+        assert!(!FsmGuard::can_group_cards(BoardPhase::Voting));
+        assert!(FsmGuard::can_vote(BoardPhase::Voting));
+        assert!(!FsmGuard::can_manage_actions(BoardPhase::Voting));
+
+        // ACTION_ITEMS
+        assert!(!FsmGuard::can_vote(BoardPhase::ActionItems));
+        assert!(FsmGuard::can_manage_actions(BoardPhase::ActionItems));
+        assert!(!FsmGuard::is_read_only(BoardPhase::ActionItems));
+
+        // ARCHIVED
+        assert!(FsmGuard::is_read_only(BoardPhase::Archived));
+        assert!(!FsmGuard::can_create_card(BoardPhase::Archived));
+        assert!(!FsmGuard::can_vote(BoardPhase::Archived));
+        assert!(!FsmGuard::can_manage_actions(BoardPhase::Archived));
     }
 }

@@ -278,6 +278,7 @@ export function App() {
                 key={col.id}
                 column={col}
                 cards={cardsByColumn[col.id] || []}
+                allCards={snapshot.cards}
                 phase={board.phase}
                 userVotedCardIds={user_voted_card_ids}
                 sessionHash={snapshot.session_hash}

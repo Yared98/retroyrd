@@ -424,17 +424,25 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.8rem', flex: 1 }}>
                       <button
-                        onClick={() => onToggleStatus(item.id, isDone ? 'TODO' : 'DONE')}
+                        disabled={!canManage}
+                        onClick={() => canManage && onToggleStatus(item.id, isDone ? 'TODO' : 'DONE')}
                         style={{
                           background: 'transparent',
                           border: 'none',
-                          cursor: 'pointer',
+                          cursor: canManage ? 'pointer' : 'default',
                           color: isDone ? 'var(--color-went-well)' : 'var(--text-dim)',
                           padding: 0,
                           marginTop: 2,
                           display: 'flex',
+                          opacity: canManage ? 1 : 0.6,
                         }}
-                        title={isDone ? 'Marcar como pendente' : 'Marcar como concluído'}
+                        title={
+                          !canManage
+                            ? 'Sessão arquivada (Somente leitura)'
+                            : isDone
+                              ? 'Marcar como pendente'
+                              : 'Marcar como concluído'
+                        }
                       >
                         {isDone ? <CheckCircle2 size={19} /> : <Circle size={19} />}
                       </button>
