@@ -133,6 +133,10 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     send('PHASE_CHANGE', { target_phase: targetPhase });
   }, [send]);
 
+  const controlTimer = useCallback((action: 'START' | 'PAUSE' | 'ADD_SECONDS' | 'RESET', seconds?: number) => {
+    send('TIMER_CONTROL', { action, seconds });
+  }, [send]);
+
   return {
     snapshot,
     isConnected,
@@ -146,5 +150,6 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     createAction,
     updateActionStatus,
     changePhase,
+    controlTimer,
   };
 }

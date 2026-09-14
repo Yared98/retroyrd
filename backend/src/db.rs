@@ -33,6 +33,10 @@ impl Database {
                 title TEXT NOT NULL,
                 phase TEXT NOT NULL,
                 facilitator_token TEXT NOT NULL,
+                max_votes_per_user INTEGER NOT NULL DEFAULT 5,
+                timer_seconds_remaining INTEGER NOT NULL DEFAULT 300,
+                timer_is_running INTEGER NOT NULL DEFAULT 0,
+                timer_ends_at INTEGER,
                 created_at INTEGER NOT NULL
             );
 
@@ -91,6 +95,13 @@ impl Database {
             -- Migração: Renomear coluna antiga Action Items para Ideas & Kudos
             UPDATE columns SET title = 'Ideas & Kudos', color = '#06B6D4' WHERE title = 'Action Items';"
         )?;
+
+        // Migrações incrementais idempotentes
+        let _ = conn.execute("ALTER TABLE boards ADD COLUMN max_votes_per_user INTEGER NOT NULL DEFAULT 5", []);
+        let _ = conn.execute("ALTER TABLE boards ADD COLUMN timer_seconds_remaining INTEGER NOT NULL DEFAULT 300", []);
+        let _ = conn.execute("ALTER TABLE boards ADD COLUMN timer_is_running INTEGER NOT NULL DEFAULT 0", []);
+        let _ = conn.execute("ALTER TABLE boards ADD COLUMN timer_ends_at INTEGER", []);
+
         Ok(())
     }
 
@@ -99,13 +110,17 @@ impl Database {
         let tx = conn.transaction()?;
 
         tx.execute(
-            "INSERT INTO boards (id, title, phase, facilitator_token, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT INTO boards (id, title, phase, facilitator_token, max_votes_per_user, timer_seconds_remaining, timer_is_running, timer_ends_at, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
             params![
                 board.id,
                 board.title,
                 board.phase.as_str(),
                 board.facilitator_token,
+                board.max_votes_per_user,
+                board.timer_seconds_remaining,
+                if board.timer_is_running { 1 } else { 0 },
+                board.timer_ends_at,
                 board.created_at
             ],
         )?;
@@ -126,23 +141,38 @@ impl Database {
     pub fn get_board(&self, id: &str) -> Result<Option<Board>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(
-            "SELECT id, title, phase, facilitator_token, created_at FROM boards WHERE id = ?1"
+            "SELECT id, title, phase, facilitator_token, max_votes_per_user, timer_seconds_remaining, timer_is_running, timer_ends_at, created_at 
+             FROM boards WHERE id = ?1"
         )?;
         let mut rows = stmt.query(params![id])?;
 
         if let Some(row) = rows.next()? {
             let phase_str: String = row.get(2)?;
             let phase = BoardPhase::from_str(&phase_str).unwrap_or(BoardPhase::SafetyCheck);
+            let timer_is_running_i32: i32 = row.get(6).unwrap_or(0);
             Ok(Some(Board {
                 id: row.get(0)?,
                 title: row.get(1)?,
                 phase,
                 facilitator_token: row.get(3)?,
-                created_at: row.get(4)?,
+                max_votes_per_user: row.get(4).unwrap_or(5),
+                timer_seconds_remaining: row.get(5).unwrap_or(300),
+                timer_is_running: timer_is_running_i32 != 0,
+                timer_ends_at: row.get(7)?,
+                created_at: row.get(8)?,
             }))
         } else {
             Ok(None)
         }
+    }
+
+    pub fn update_timer(&self, board_id: &str, seconds_remaining: i32, is_running: bool, ends_at: Option<i64>) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "UPDATE boards SET timer_seconds_remaining = ?1, timer_is_running = ?2, timer_ends_at = ?3 WHERE id = ?4",
+            params![seconds_remaining, if is_running { 1 } else { 0 }, ends_at, board_id],
+        )?;
+        Ok(())
     }
 
     pub fn update_board_phase(&self, board_id: &str, phase: BoardPhase) -> Result<()> {
@@ -286,6 +316,25 @@ impl Database {
             )?;
             Ok(false) // Voto removido
         } else {
+            // Verificar limite máximo de votos permitidos no board
+            let max_votes: i32 = conn.query_row(
+                "SELECT max_votes_per_user FROM boards WHERE id = ?1",
+                params![board_id],
+                |row| row.get(0),
+            ).unwrap_or(5);
+
+            if max_votes > 0 {
+                let current_votes: i32 = conn.query_row(
+                    "SELECT COUNT(*) FROM votes WHERE board_id = ?1 AND session_hash = ?2",
+                    params![board_id, session_hash],
+                    |row| row.get(0),
+                ).unwrap_or(0);
+
+                if current_votes >= max_votes {
+                    return Ok(false); // Cota de votos atingida! Bloqueia novo voto.
+                }
+            }
+
             conn.execute(
                 "INSERT INTO votes (board_id, card_id, session_hash) VALUES (?1, ?2, ?3)",
                 params![board_id, card_id, session_hash],

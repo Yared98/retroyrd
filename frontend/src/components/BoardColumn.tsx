@@ -9,6 +9,7 @@ interface BoardColumnProps {
   phase: BoardPhase;
   userVotedCardIds: string[];
   sessionHash?: string;
+  isVoteLimitReached?: boolean;
   onAddCard: (columnId: string, content: string) => void;
   onVoteCard: (cardId: string) => void;
   onUpdateCard: (cardId: string, content: string) => void;
@@ -23,6 +24,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   phase,
   userVotedCardIds,
   sessionHash,
+  isVoteLimitReached = false,
   onAddCard,
   onVoteCard,
   onUpdateCard,
@@ -220,6 +222,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 phase={phase}
                 hasVoted={hasVoted}
                 canEdit={canEdit}
+                isVoteLimitReached={isVoteLimitReached}
                 onVote={onVoteCard}
                 onUpdate={onUpdateCard}
                 onDelete={onDeleteCard}

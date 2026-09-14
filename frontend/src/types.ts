@@ -11,6 +11,10 @@ export interface Board {
   title: string;
   phase: BoardPhase;
   facilitator_token?: string;
+  max_votes_per_user: number;
+  timer_seconds_remaining: number;
+  timer_is_running: boolean;
+  timer_ends_at?: number | null;
   created_at: number;
 }
 

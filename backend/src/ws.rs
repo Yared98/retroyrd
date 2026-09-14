@@ -369,6 +369,59 @@ async fn process_client_message(
             }
         }
 
+        "TIMER_CONTROL" => {
+            if !is_facilitator {
+                warn!("Tentativa não autorizada de controlar o timer no board {}", board_id);
+                return;
+            }
+            let action = msg.payload.get("action").and_then(|v| v.as_str()).unwrap_or("");
+            let now_ms = chrono_or_now();
+
+            match action {
+                "START" => {
+                    let seconds = msg.payload.get("seconds").and_then(|v| v.as_i64()).map(|s| s as i32)
+                        .unwrap_or(board.timer_seconds_remaining);
+                    let ends_at = now_ms + (seconds as i64 * 1000);
+                    let _ = state.db.update_timer(board_id, seconds, true, Some(ends_at));
+                }
+                "PAUSE" => {
+                    let remaining = if let Some(ends_at) = board.timer_ends_at {
+                        let diff = (ends_at - now_ms) / 1000;
+                        if diff > 0 { diff as i32 } else { 0 }
+                    } else {
+                        board.timer_seconds_remaining
+                    };
+                    let _ = state.db.update_timer(board_id, remaining, false, None);
+                }
+                "ADD_SECONDS" => {
+                    let add = msg.payload.get("seconds").and_then(|v| v.as_i64()).unwrap_or(60) as i32;
+                    let current_left = if board.timer_is_running {
+                        if let Some(ends_at) = board.timer_ends_at {
+                            let diff = (ends_at - now_ms) / 1000;
+                            if diff > 0 { diff as i32 } else { 0 }
+                        } else {
+                            board.timer_seconds_remaining
+                        }
+                    } else {
+                        board.timer_seconds_remaining
+                    };
+                    let new_total = (current_left + add).max(0);
+                    let ends_at = if board.timer_is_running {
+                        Some(now_ms + (new_total as i64 * 1000))
+                    } else {
+                        None
+                    };
+                    let _ = state.db.update_timer(board_id, new_total, board.timer_is_running, ends_at);
+                }
+                "RESET" => {
+                    let seconds = msg.payload.get("seconds").and_then(|v| v.as_i64()).unwrap_or(300) as i32;
+                    let _ = state.db.update_timer(board_id, seconds, false, None);
+                }
+                _ => {}
+            }
+            broadcast_sync_to_room(state, board_id, room_sender).await;
+        }
+
         _ => {}
     }
 }

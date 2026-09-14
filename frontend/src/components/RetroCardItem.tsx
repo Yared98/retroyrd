@@ -19,6 +19,7 @@ interface RetroCardItemProps {
   phase: BoardPhase;
   hasVoted: boolean;
   canEdit: boolean;
+  isVoteLimitReached?: boolean;
   onVote: (id: string) => void;
   onUpdate: (id: string, content: string) => void;
   onDelete: (id: string) => void;
@@ -32,6 +33,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   phase,
   hasVoted,
   canEdit,
+  isVoteLimitReached = false,
   onVote,
   onUpdate,
   onDelete,
@@ -400,20 +402,30 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
       {(phase === 'VOTING' || phase === 'ACTION_ITEMS' || phase === 'ARCHIVED') && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0.4rem' }}>
           <button
-            disabled={phase !== 'VOTING'}
+            disabled={phase !== 'VOTING' || (!hasVoted && isVoteLimitReached)}
             onClick={() => onVote(card.id)}
+            title={
+              phase !== 'VOTING' 
+                ? 'Votação encerrada' 
+                : !hasVoted && isVoteLimitReached 
+                  ? 'Você atingiu seu limite de votos. Desmarque um voto para escolher outro card.' 
+                  : hasVoted 
+                    ? 'Clique para remover seu voto' 
+                    : 'Clique para votar neste card'
+            }
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
               background: hasVoted ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255, 255, 255, 0.05)',
               border: `1px solid ${hasVoted ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
-              color: hasVoted ? '#a5b4fc' : 'var(--text-muted)',
+              color: hasVoted ? '#a5b4fc' : !hasVoted && isVoteLimitReached ? 'var(--text-dim)' : 'var(--text-muted)',
+              opacity: !hasVoted && isVoteLimitReached ? 0.45 : 1,
               padding: '0.25rem 0.65rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.75rem',
               fontWeight: 700,
-              cursor: phase === 'VOTING' ? 'pointer' : 'default',
+              cursor: phase === 'VOTING' && (hasVoted || !isVoteLimitReached) ? 'pointer' : 'not-allowed',
               transition: 'all 0.15s ease',
             }}
           >

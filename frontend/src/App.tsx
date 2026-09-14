@@ -43,6 +43,7 @@ export function App() {
     createAction,
     updateActionStatus,
     changePhase,
+    controlTimer,
   } = useBoardSocket(boardId, facilitatorToken);
 
   // Salvar token do facilitador se recebido via query param
@@ -53,14 +54,14 @@ export function App() {
   }, [boardId, facilitatorToken]);
 
   // Criação de novo board via HTTP POST /api/boards
-  const handleCreateBoard = async (title: string) => {
+  const handleCreateBoard = async (title: string, maxVotesPerUser: number = 5) => {
     setIsCreating(true);
     try {
       const apiHost = window.location.port === '5173' ? 'http://localhost:8080' : '';
       const res = await fetch(`${apiHost}/api/boards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, max_votes_per_user: maxVotesPerUser }),
       });
       const data = await res.json();
       if (data.id) {
@@ -134,6 +135,7 @@ export function App() {
 
   const { board, action_items, safety_summary, user_voted_card_ids, is_facilitator } = snapshot;
   const isActionItemsPhase = board.phase === 'ACTION_ITEMS' || board.phase === 'ARCHIVED';
+  const isVoteLimitReached = board.max_votes_per_user > 0 && user_voted_card_ids.length >= board.max_votes_per_user;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-canvas)' }}>
@@ -142,6 +144,12 @@ export function App() {
         title={board.title}
         phase={board.phase}
         isFacilitator={is_facilitator}
+        timerSecondsRemaining={board.timer_seconds_remaining}
+        timerIsRunning={board.timer_is_running}
+        timerEndsAt={board.timer_ends_at}
+        maxVotesPerUser={board.max_votes_per_user}
+        userVotedCount={user_voted_card_ids.length}
+        onControlTimer={controlTimer}
         onNextPhase={(nextPhase: BoardPhase) => changePhase(nextPhase)}
         onExport={handleExport}
         onToggleTelemetry={() => setShowMcpDrawer(!showMcpDrawer)}
@@ -272,6 +280,7 @@ export function App() {
                 cards={cardsByColumn[col.id] || []}
                 phase={board.phase}
                 userVotedCardIds={user_voted_card_ids}
+                isVoteLimitReached={isVoteLimitReached}
                 onAddCard={createCard}
                 onVoteCard={toggleVote}
                 onUpdateCard={updateCard}

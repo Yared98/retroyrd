@@ -53,6 +53,10 @@ pub struct Board {
     pub title: String,
     pub phase: BoardPhase,
     pub facilitator_token: String,
+    pub max_votes_per_user: i32,
+    pub timer_seconds_remaining: i32,
+    pub timer_is_running: bool,
+    pub timer_ends_at: Option<i64>,
     pub created_at: i64,
 }
 
@@ -120,6 +124,8 @@ pub struct WsMessage {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CreateBoardRequest {
     pub title: String,
+    #[serde(default)]
+    pub max_votes_per_user: Option<i32>,
     #[serde(default)]
     pub columns: Option<Vec<String>>,
 }

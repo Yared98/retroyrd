@@ -43,9 +43,10 @@ async fn main() {
         .allow_methods(Any)
         .allow_headers(Any);
 
-    // Servir arquivos estáticos do frontend se a pasta ../frontend/dist existir
+    // Servir arquivos estáticos do frontend com fallback para index.html (suporte a SPA / F5 com 200 OK)
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../frontend/dist".to_string());
-    let static_service = ServeDir::new(PathBuf::from(&static_dir));
+    let static_service = ServeDir::new(PathBuf::from(&static_dir))
+        .fallback(get(spa_fallback));
 
     let app = Router::new()
         .route("/health", get(health_check))
@@ -76,6 +77,19 @@ async fn health_check() -> &'static str {
     "OK"
 }
 
+async fn spa_fallback() -> impl IntoResponse {
+    let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../frontend/dist".to_string());
+    let index_file = PathBuf::from(&static_dir).join("index.html");
+    match tokio::fs::read_to_string(index_file).await {
+        Ok(html) => (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+            html,
+        ).into_response(),
+        Err(_) => (StatusCode::NOT_FOUND, "index.html não encontrado").into_response(),
+    }
+}
+
 async fn create_board_handler(
     State(state): State<AppState>,
     Json(payload): Json<CreateBoardRequest>,
@@ -93,6 +107,10 @@ async fn create_board_handler(
         },
         phase: BoardPhase::SafetyCheck,
         facilitator_token: facilitator_token.clone(),
+        max_votes_per_user: payload.max_votes_per_user.unwrap_or(5),
+        timer_seconds_remaining: 300,
+        timer_is_running: false,
+        timer_ends_at: None,
         created_at: now,
     };
 
