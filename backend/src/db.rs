@@ -86,7 +86,10 @@ impl Database {
                 status TEXT NOT NULL DEFAULT 'TODO',
                 created_at INTEGER NOT NULL,
                 FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
-            );"
+            );
+
+            -- Migração: Renomear coluna antiga Action Items para Ideas & Kudos
+            UPDATE columns SET title = 'Ideas & Kudos', color = '#06B6D4' WHERE title = 'Action Items';"
         )?;
         Ok(())
     }

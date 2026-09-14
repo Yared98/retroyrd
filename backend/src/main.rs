@@ -99,7 +99,7 @@ async fn create_board_handler(
     let default_cols = [
         ("Went Well", "#10B981"),
         ("To Improve", "#F43F5E"),
-        ("Action Items", "#8B5CF6"),
+        ("Ideas & Kudos", "#06B6D4"),
     ];
 
     state

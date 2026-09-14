@@ -83,15 +83,29 @@ export function App() {
     window.open(`${apiHost}/api/boards/${boardId}/export`, '_blank');
   };
 
+  // Sanitizar colunas para garantir que nenhuma coluna antiga se chame "Action Items"
+  const sanitizedColumns = useMemo(() => {
+    if (!snapshot) return [];
+    return snapshot.columns.map((col) => {
+      if (col.title.trim().toLowerCase() === 'action items') {
+        return { ...col, title: 'Ideas & Kudos', color: '#06B6D4' };
+      }
+      return col;
+    });
+  }, [snapshot]);
+
+  // Controle de exibição do board completo durante a fase de Action Items
+  const [showBoardReview, setShowBoardReview] = useState(false);
+
   // Separação de cards por coluna
   const cardsByColumn = useMemo(() => {
     if (!snapshot) return {};
     const map: Record<string, typeof snapshot.cards> = {};
-    for (const col of snapshot.columns) {
+    for (const col of sanitizedColumns) {
       map[col.id] = snapshot.cards.filter((c) => c.column_id === col.id);
     }
     return map;
-  }, [snapshot]);
+  }, [snapshot, sanitizedColumns]);
 
   // Se não temos boardId na URL, exibir tela de criação
   if (!boardId) {
@@ -118,7 +132,8 @@ export function App() {
     );
   }
 
-  const { board, columns, action_items, safety_summary, user_voted_card_ids, is_facilitator } = snapshot;
+  const { board, action_items, safety_summary, user_voted_card_ids, is_facilitator } = snapshot;
+  const isActionItemsPhase = board.phase === 'ACTION_ITEMS' || board.phase === 'ARCHIVED';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-canvas)' }}>
@@ -204,40 +219,69 @@ export function App() {
           </div>
         )}
 
-        {/* Visualização de Action Items destacada quando na fase ACTION_ITEMS ou ARCHIVED */}
-        {(board.phase === 'ACTION_ITEMS' || board.phase === 'ARCHIVED') && (
-          <ActionItemsView
-            items={action_items}
-            canManage={board.phase === 'ACTION_ITEMS'}
-            onAddAction={createAction}
-            onToggleStatus={updateActionStatus}
-          />
+        {/* Fase 5: Visualização Integrada de Tópicos Priorizados e Action Items */}
+        {isActionItemsPhase && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <ActionItemsView
+              items={action_items}
+              cards={snapshot.cards}
+              columns={sanitizedColumns}
+              canManage={board.phase === 'ACTION_ITEMS'}
+              onAddAction={createAction}
+              onToggleStatus={updateActionStatus}
+            />
+
+            {/* Alternador para revisar colunas em modo somente leitura */}
+            <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '0.5rem' }}>
+              <button
+                onClick={() => setShowBoardReview(!showBoardReview)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-full)',
+                  padding: '0.45rem 1.1rem',
+                  color: 'var(--text-muted)',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.2s ease',
+                }}
+              >
+                <span>{showBoardReview ? '▲ Ocultar Colunas da Retrospectiva' : '▼ Visualizar Todas as Colunas (Somente Leitura)'}</span>
+              </button>
+            </div>
+          </div>
         )}
 
-        {/* Grade de Colunas de Brainstorming e Votação */}
-        <div style={{
-          display: 'flex',
-          gap: '1.5rem',
-          overflowX: 'auto',
-          paddingBottom: '1rem',
-          alignItems: 'flex-start',
-        }}>
-          {columns.map((col) => (
-            <BoardColumn
-              key={col.id}
-              column={col}
-              cards={cardsByColumn[col.id] || []}
-              phase={board.phase}
-              userVotedCardIds={user_voted_card_ids}
-              onAddCard={createCard}
-              onVoteCard={toggleVote}
-              onUpdateCard={updateCard}
-              onDeleteCard={deleteCard}
-              onGroupCards={groupCards}
-              onUngroupCard={ungroupCard}
-            />
-          ))}
-        </div>
+        {/* Grade de Colunas de Brainstorming e Votação (exibida sempre nas Fases 2, 3, 4 ou sob demanda na Fase 5) */}
+        {(!isActionItemsPhase || showBoardReview) && (
+          <div style={{
+            display: 'flex',
+            gap: '1.5rem',
+            overflowX: 'auto',
+            paddingBottom: '1rem',
+            alignItems: 'flex-start',
+          }}>
+            {sanitizedColumns.map((col) => (
+              <BoardColumn
+                key={col.id}
+                column={col}
+                cards={cardsByColumn[col.id] || []}
+                phase={board.phase}
+                userVotedCardIds={user_voted_card_ids}
+                onAddCard={createCard}
+                onVoteCard={toggleVote}
+                onUpdateCard={updateCard}
+                onDeleteCard={deleteCard}
+                onGroupCards={groupCards}
+                onUngroupCard={ungroupCard}
+              />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Gaveta de Telemetria MCP */}
