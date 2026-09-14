@@ -153,11 +153,11 @@ export const Header: React.FC<HeaderProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: '1rem',
-        flexWrap: 'wrap',
+        gap: '0.75rem',
+        flexWrap: 'nowrap',
       }}>
         {/* Lado Esquerdo: Título & Status */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span className="pulse-dot" />
@@ -196,13 +196,12 @@ export const Header: React.FC<HeaderProps> = ({
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '0.4rem',
+          gap: '0.3rem',
           background: 'rgba(255, 255, 255, 0.03)',
           border: '1px solid var(--border-subtle)',
-          padding: '0.35rem',
+          padding: '0.25rem 0.35rem',
           borderRadius: 'var(--radius-full)',
-          overflowX: 'auto',
-          maxWidth: '100%',
+          flexShrink: 0,
         }}>
           {PHASES.map((p, idx) => {
             const isCurrent = p.key === phase;
@@ -212,11 +211,12 @@ export const Header: React.FC<HeaderProps> = ({
             return (
               <div
                 key={p.key}
+                title={p.label}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.35rem',
-                  padding: '0.35rem 0.75rem',
+                  padding: isCurrent ? '0.35rem 0.75rem' : '0.35rem 0.55rem',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.75rem',
                   fontWeight: isCurrent ? 700 : 500,
@@ -225,17 +225,22 @@ export const Header: React.FC<HeaderProps> = ({
                   boxShadow: isCurrent ? '0 0 12px var(--color-primary-glow)' : 'none',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.2s',
+                  cursor: 'default',
                 }}
               >
                 {isDone ? <CheckCircle2 size={14} color="var(--color-went-well)" /> : <Icon size={14} />}
-                <span>{p.label}</span>
+                {isCurrent ? (
+                  <span>{p.label}</span>
+                ) : (
+                  <span style={{ opacity: 0.85, fontSize: '0.7rem' }}>{idx + 1}</span>
+                )}
               </div>
             );
           })}
         </div>
 
         {/* Lado Direito: Votação Pill, Timer Capsule, Compartilhar, Ações */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           {/* Cápsula de Cota de Votos (exibida exclusivamente na fase de VOTING) */}
           {phase === 'VOTING' && (
             <div style={{
@@ -249,13 +254,14 @@ export const Header: React.FC<HeaderProps> = ({
               color: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? '#fca5a5' : '#c7d2fe',
               fontSize: '0.75rem',
               fontWeight: 700,
+              whiteSpace: 'nowrap',
             }}>
               <Vote size={14} />
               <span>
                 {maxVotesPerUser === 0 
-                  ? `${userVotedCount} votos dados (Ilimitado)` 
+                  ? `${userVotedCount} votos (Ilimitado)` 
                   : userVotedCount >= maxVotesPerUser
-                    ? `Votos esgotados: ${userVotedCount}/${maxVotesPerUser}`
+                    ? `Votos: ${userVotedCount}/${maxVotesPerUser}`
                     : `Votos: ${userVotedCount}/${maxVotesPerUser}`}
               </span>
             </div>
@@ -299,6 +305,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : timerIsRunning 
                     ? '0 0 12px var(--color-primary-glow)' 
                     : 'none',
+                whiteSpace: 'nowrap',
               }}
               title={isFacilitator ? "Controles do Timer (Clique para configurar)" : "Clique para ligar/desligar som do alarme"}
             >
@@ -314,14 +321,15 @@ export const Header: React.FC<HeaderProps> = ({
               <div style={{
                 position: 'absolute',
                 top: 'calc(100% + 8px)',
-                right: 0,
+                left: 0,
                 background: '#0f172a',
                 border: '1px solid var(--border-highlight)',
                 borderRadius: 'var(--radius-md)',
                 padding: '0.85rem',
                 boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)',
-                zIndex: 60,
+                zIndex: 100,
                 width: 260,
+                maxWidth: 'min(280px, calc(100vw - 2rem))',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.65rem',
