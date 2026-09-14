@@ -280,6 +280,7 @@ export function App() {
                 cards={cardsByColumn[col.id] || []}
                 phase={board.phase}
                 userVotedCardIds={user_voted_card_ids}
+                sessionHash={snapshot.session_hash}
                 isVoteLimitReached={isVoteLimitReached}
                 onAddCard={createCard}
                 onVoteCard={toggleVote}

@@ -110,6 +110,7 @@ pub struct BoardStateSnapshot {
     pub safety_summary: Option<SafetyCheckSummary>,
     pub user_voted_card_ids: Vec<String>,
     pub is_facilitator: bool,
+    pub session_hash: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -63,6 +63,7 @@ export interface BoardStateSnapshot {
   safety_summary?: SafetyCheckSummary | null;
   user_voted_card_ids: string[];
   is_facilitator: boolean;
+  session_hash: string;
 }
 
 export interface WsMessage {

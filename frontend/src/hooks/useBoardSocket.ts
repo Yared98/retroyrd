@@ -55,6 +55,7 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
                 cards: msg.payload.cards || prev.cards,
                 action_items: msg.payload.action_items || prev.action_items,
                 safety_summary: msg.payload.safety_summary !== undefined ? msg.payload.safety_summary : prev.safety_summary,
+                session_hash: msg.payload.session_hash || prev.session_hash,
               };
             });
           }

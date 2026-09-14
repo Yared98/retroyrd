@@ -53,8 +53,10 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
     }
   };
 
-  // 1. Renderização no Modo Cego (Blind Mode)
-  if (card.is_masked) {
+  // 1. Renderização no Modo Cego (Blind Mode na fase de Brainstorm para cards de outros participantes)
+  const isBlindMode = (card.is_masked || phase === 'BRAINSTORM') && !canEdit;
+
+  if (isBlindMode) {
     return (
       <div style={{
         background: 'rgba(255, 255, 255, 0.02)',

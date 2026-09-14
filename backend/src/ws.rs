@@ -132,9 +132,38 @@ async fn handle_socket(
 }
 
 fn mask_message_for_recipient(msg: &WsMessage, recipient_session_hash: &str) -> WsMessage {
-    if msg.msg_type == "SYNC_STATE" {
-        // No SYNC_STATE o snapshot já foi sanitizado individualmente antes do envio
-        return msg.clone();
+    if msg.msg_type == "ROOM_STATE_UPDATED" {
+        if let Ok(mut payload) = serde_json::from_value::<serde_json::Map<String, serde_json::Value>>(msg.payload.clone()) {
+            let is_brainstorm = payload.get("board")
+                .and_then(|b| b.get("phase"))
+                .and_then(|p| p.as_str())
+                == Some("BRAINSTORM");
+
+            if is_brainstorm {
+                if let Some(cards_val) = payload.get_mut("cards") {
+                    if let Some(cards_arr) = cards_val.as_array_mut() {
+                        for card_val in cards_arr {
+                            let author = card_val.get("author_session_hash").and_then(|a| a.as_str()).unwrap_or("");
+                            if author != recipient_session_hash {
+                                if let Some(card_obj) = card_val.as_object_mut() {
+                                    card_obj.insert("content".to_string(), serde_json::json!("••••••••"));
+                                    card_obj.insert("is_masked".to_string(), serde_json::json!(true));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Injetar session_hash no snapshot para o cliente identificar suas próprias autorias
+            payload.insert("session_hash".to_string(), serde_json::json!(recipient_session_hash));
+
+            return WsMessage {
+                msg_type: msg.msg_type.clone(),
+                payload: serde_json::Value::Object(payload),
+                timestamp: msg.timestamp,
+            };
+        }
     }
 
     if msg.msg_type == "CARD_CREATED" || msg.msg_type == "CARD_UPDATED" {
@@ -143,7 +172,7 @@ fn mask_message_for_recipient(msg: &WsMessage, recipient_session_hash: &str) -> 
                 card.content = "••••••••".to_string();
                 return WsMessage {
                     msg_type: msg.msg_type.clone(),
-                    payload: json!(card),
+                    payload: serde_json::json!(card),
                     timestamp: msg.timestamp,
                 };
             }
@@ -200,6 +229,7 @@ pub fn build_snapshot(
         safety_summary,
         user_voted_card_ids,
         is_facilitator,
+        session_hash: session_hash.to_string(),
     })
 }
 
