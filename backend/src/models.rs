@@ -45,6 +45,17 @@ impl BoardPhase {
             BoardPhase::Archived => None,
         }
     }
+
+    pub fn previous_phase(&self) -> Option<Self> {
+        match self {
+            BoardPhase::SafetyCheck => None,
+            BoardPhase::Brainstorm => Some(BoardPhase::SafetyCheck),
+            BoardPhase::Grouping => Some(BoardPhase::Brainstorm),
+            BoardPhase::Voting => Some(BoardPhase::Grouping),
+            BoardPhase::ActionItems => Some(BoardPhase::Voting),
+            BoardPhase::Archived => Some(BoardPhase::ActionItems),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -70,6 +81,14 @@ pub struct Column {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CardReaction {
+    pub emoji: String,
+    pub count: i32,
+    #[serde(default)]
+    pub users: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Card {
     pub id: String,
     pub column_id: String,
@@ -80,6 +99,8 @@ pub struct Card {
     pub is_masked: bool,
     pub is_ai_generated: bool,
     pub vote_count: i32,
+    #[serde(default)]
+    pub reactions: Vec<CardReaction>,
     pub created_at: i64,
 }
 

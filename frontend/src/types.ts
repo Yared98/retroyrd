@@ -26,6 +26,12 @@ export interface Column {
   order_index: number;
 }
 
+export interface ReactionItem {
+  emoji: string;
+  count: number;
+  users?: string[];
+}
+
 export interface Card {
   id: string;
   column_id: string;
@@ -36,6 +42,7 @@ export interface Card {
   is_masked: boolean;
   is_ai_generated: boolean;
   vote_count: number;
+  reactions?: ReactionItem[];
   created_at: number;
 }
 

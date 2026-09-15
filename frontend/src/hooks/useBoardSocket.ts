@@ -122,6 +122,14 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     send('CARD_UNGROUP', { card_id: cardId });
   }, [send]);
 
+  const moveCard = useCallback((cardId: string, targetColumnId: string) => {
+    send('CARD_MOVE', { card_id: cardId, target_column_id: targetColumnId });
+  }, [send]);
+
+  const toggleReaction = useCallback((cardId: string, emoji: string) => {
+    send('CARD_REACT', { card_id: cardId, emoji });
+  }, [send]);
+
   const createAction = useCallback((description: string, owner?: string) => {
     send('ACTION_CREATE', { description, owner });
   }, [send]);
@@ -148,6 +156,8 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     toggleVote,
     groupCards,
     ungroupCard,
+    moveCard,
+    toggleReaction,
     createAction,
     updateActionStatus,
     changePhase,

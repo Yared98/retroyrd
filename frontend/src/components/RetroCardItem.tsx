@@ -10,7 +10,8 @@ import {
   X, 
   GripVertical, 
   Layers, 
-  CornerDownRight 
+  CornerDownRight,
+  Plus
 } from 'lucide-react';
 
 interface RetroCardItemProps {
@@ -19,13 +20,17 @@ interface RetroCardItemProps {
   phase: BoardPhase;
   hasVoted: boolean;
   canEdit: boolean;
+  sessionHash?: string;
   isVoteLimitReached?: boolean;
   onVote: (id: string) => void;
   onUpdate: (id: string, content: string) => void;
   onDelete: (id: string) => void;
   onGroupCards?: (parentCardId: string, childCardIds: string[]) => void;
   onUngroupCard?: (cardId: string) => void;
+  onToggleReaction?: (cardId: string, emoji: string) => void;
 }
+
+const AVAILABLE_REACTIONS = ['👏', '❤️', '💡', '🚀'];
 
 export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   card,
@@ -33,16 +38,19 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   phase,
   hasVoted,
   canEdit,
+  sessionHash,
   isVoteLimitReached = false,
   onVote,
   onUpdate,
   onDelete,
   onGroupCards,
   onUngroupCard,
+  onToggleReaction,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(card.content);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
 
   const isGrouping = phase === 'GROUPING';
 
@@ -103,9 +111,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
     );
   }
 
-  // 2. Drag & Drop Handlers (Grouping)
+  // 2. Drag & Drop Handlers (Grouping & Column Move)
   const handleDragStart = (e: React.DragEvent) => {
-    if (!isGrouping) return;
+    if (phase !== 'BRAINSTORM' && phase !== 'GROUPING') return;
+    const payload = JSON.stringify({ cardId: card.id, columnId: card.column_id });
+    e.dataTransfer.setData('application/json', payload);
     e.dataTransfer.setData('text/plain', card.id);
     e.dataTransfer.effectAllowed = 'move';
   };
@@ -113,6 +123,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   const handleDragOver = (e: React.DragEvent) => {
     if (!isGrouping) return;
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     if (!isDragOver) setIsDragOver(true);
   };
@@ -124,10 +135,26 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     if (!isGrouping) return;
     e.preventDefault();
+    e.stopPropagation();
     setIsDragOver(false);
-    const draggedCardId = e.dataTransfer.getData('text/plain');
 
+    let draggedCardId = e.dataTransfer.getData('text/plain');
+    let draggedColId = '';
+    const jsonStr = e.dataTransfer.getData('application/json');
+    if (jsonStr) {
+      try {
+        const parsed = JSON.parse(jsonStr);
+        if (parsed.cardId) draggedCardId = parsed.cardId;
+        if (parsed.columnId) draggedColId = parsed.columnId;
+      } catch {}
+    }
+
+    // Regra 1: Só permite agrupar cards da MESMA coluna!
     if (draggedCardId && draggedCardId !== card.id && onGroupCards) {
+      if (draggedColId && draggedColId !== card.column_id) {
+        // Drop de outra coluna sobre este card não agrupa
+        return;
+      }
       onGroupCards(card.id, [draggedCardId]);
     }
   };
@@ -136,7 +163,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
 
   return (
     <div
-      draggable={isGrouping && !isEditing}
+      draggable={(isGrouping || phase === 'BRAINSTORM') && !isEditing}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
@@ -405,12 +432,69 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         </div>
       )}
 
-      {/* Footer: Votação (VOTING em diante) */}
-      {(phase === 'VOTING' || phase === 'ACTION_ITEMS' || phase === 'ARCHIVED') && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingTop: '0.4rem' }}>
+      {/* Footer: Reações Rápidas e Votação */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingTop: '0.4rem',
+        borderTop: '1px solid var(--border-subtle)',
+        marginTop: '0.25rem',
+        gap: '0.5rem',
+        flexWrap: 'wrap',
+      }}>
+        {/* Micro-reações */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'wrap' }}>
+          {AVAILABLE_REACTIONS.map((emoji) => {
+            const entry = card.reactions?.find((r) => r.emoji === emoji);
+            const count = entry?.count || 0;
+            const hasReacted = Boolean(sessionHash && entry?.users?.includes(sessionHash));
+
+            if (count === 0 && !hasReacted && !showReactionPicker) return null;
+
+            return (
+              <button
+                key={emoji}
+                type="button"
+                className={`reaction-pill ${hasReacted ? 'is-active' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleReaction && onToggleReaction(card.id, emoji);
+                  setShowReactionPicker(false);
+                }}
+                title={hasReacted ? `Você reagiu com ${emoji}. Clique para remover.` : `Reagir com ${emoji}`}
+              >
+                <span>{emoji}</span>
+                {count > 0 && <span>{count}</span>}
+              </button>
+            );
+          })}
+
+          {onToggleReaction && (
+            <button
+              type="button"
+              className="reaction-pill"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowReactionPicker(!showReactionPicker);
+              }}
+              title="Adicionar micro-reação"
+              style={{ padding: '0.18rem 0.45rem', opacity: showReactionPicker ? 1 : 0.75 }}
+            >
+              <Plus size={11} />
+              <span style={{ fontSize: '0.68rem' }}>{showReactionPicker ? '✕' : 'Reagir'}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Votação (VOTING em diante) */}
+        {(phase === 'VOTING' || phase === 'ACTION_ITEMS' || phase === 'ARCHIVED') && (
           <button
             disabled={phase !== 'VOTING' || (!hasVoted && isVoteLimitReached)}
-            onClick={() => onVote(card.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onVote(card.id);
+            }}
             title={
               phase !== 'VOTING' 
                 ? 'Votação encerrada' 
@@ -439,8 +523,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
             <ThumbsUp size={12} />
             <span>{totalClusterVotes}</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

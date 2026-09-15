@@ -317,6 +317,7 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
                     is_masked: false,
                     is_ai_generated: true,
                     vote_count: 0,
+                    reactions: Vec::new(),
                     created_at: now,
                 };
 

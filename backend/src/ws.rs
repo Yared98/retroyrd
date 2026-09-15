@@ -279,6 +279,7 @@ async fn process_client_message(
                     is_masked: board.phase == BoardPhase::Brainstorm,
                     is_ai_generated: false,
                     vote_count: 0,
+                    reactions: Vec::new(),
                     created_at: now,
                 };
                 if state.db.create_card(&card).is_ok() {
@@ -333,6 +334,30 @@ async fn process_client_message(
             }
             if let Some(card_id) = msg.payload.get("card_id").and_then(|v| v.as_str()) {
                 let _ = state.db.ungroup_card(card_id);
+                broadcast_sync_to_room(state, board_id, room_sender).await;
+            }
+        }
+
+        "CARD_MOVE" => {
+            if board.phase == BoardPhase::SafetyCheck || board.phase == BoardPhase::Archived {
+                return;
+            }
+            let card_id = msg.payload.get("card_id").and_then(|v| v.as_str());
+            let target_col = msg.payload.get("target_column_id").and_then(|v| v.as_str());
+            if let (Some(cid), Some(col_id)) = (card_id, target_col) {
+                let _ = state.db.move_card(cid, col_id);
+                broadcast_sync_to_room(state, board_id, room_sender).await;
+            }
+        }
+
+        "CARD_REACT" => {
+            if board.phase == BoardPhase::SafetyCheck || board.phase == BoardPhase::Archived {
+                return;
+            }
+            let card_id = msg.payload.get("card_id").and_then(|v| v.as_str());
+            let emoji = msg.payload.get("emoji").and_then(|v| v.as_str());
+            if let (Some(cid), Some(em)) = (card_id, emoji) {
+                let _ = state.db.toggle_reaction(cid, em, session_hash);
                 broadcast_sync_to_room(state, board_id, room_sender).await;
             }
         }

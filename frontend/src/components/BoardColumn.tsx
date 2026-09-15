@@ -17,6 +17,8 @@ interface BoardColumnProps {
   onDeleteCard: (cardId: string) => void;
   onGroupCards?: (parentCardId: string, childCardIds: string[]) => void;
   onUngroupCard?: (cardId: string) => void;
+  onMoveCard?: (cardId: string, targetColumnId: string) => void;
+  onToggleReaction?: (cardId: string, emoji: string) => void;
 }
 
 export const BoardColumn: React.FC<BoardColumnProps> = ({
@@ -33,9 +35,12 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   onDeleteCard,
   onGroupCards,
   onUngroupCard,
+  onMoveCard,
+  onToggleReaction,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [content, setContent] = useState('');
+  const [isColumnDragOver, setIsColumnDragOver] = useState(false);
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,22 +58,55 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const topLevelCards = cards.filter((c) => !c.parent_card_id);
 
   return (
-    <div style={{
-      flex: '1 1 320px',
-      minWidth: 320,
-      maxWidth: 480,
-      display: 'flex',
-      flexDirection: 'column',
-      background: 'var(--bg-surface)',
-      border: isGrouping ? '1px solid var(--border-primary)' : '1px solid var(--border-subtle)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '1.25rem',
-      gap: '1rem',
-      height: 'fit-content',
-      maxHeight: 'calc(100vh - 120px)',
-      boxShadow: 'var(--shadow-sm)',
-      transition: 'all 0.2s ease',
-    }}>
+    <div
+      onDragOver={(e) => {
+        if (phase !== 'BRAINSTORM' && phase !== 'GROUPING') return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (!isColumnDragOver) setIsColumnDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+        setIsColumnDragOver(false);
+      }}
+      onDrop={(e) => {
+        if (phase !== 'BRAINSTORM' && phase !== 'GROUPING') return;
+        e.preventDefault();
+        setIsColumnDragOver(false);
+
+        let cardId = e.dataTransfer.getData('text/plain');
+        let sourceColId = '';
+        const jsonStr = e.dataTransfer.getData('application/json');
+        if (jsonStr) {
+          try {
+            const parsed = JSON.parse(jsonStr);
+            if (parsed.cardId) cardId = parsed.cardId;
+            if (parsed.columnId) sourceColId = parsed.columnId;
+          } catch {}
+        }
+
+        if (cardId && sourceColId && sourceColId !== column.id && onMoveCard) {
+          onMoveCard(cardId, column.id);
+        }
+      }}
+      className={isColumnDragOver ? 'column-dropzone-active' : ''}
+      style={{
+        flex: '1 1 320px',
+        minWidth: 320,
+        maxWidth: 480,
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'var(--bg-surface)',
+        border: isGrouping ? '1px solid var(--border-primary)' : '1px solid var(--border-subtle)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '1.25rem',
+        gap: '1rem',
+        height: 'fit-content',
+        maxHeight: 'calc(100vh - 120px)',
+        boxShadow: 'var(--shadow-sm)',
+        transition: 'all 0.2s ease',
+      }}
+    >
       {/* Cabeçalho da Coluna */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -225,12 +263,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 phase={phase}
                 hasVoted={hasVoted}
                 canEdit={canEdit}
+                sessionHash={sessionHash}
                 isVoteLimitReached={isVoteLimitReached}
                 onVote={onVoteCard}
                 onUpdate={onUpdateCard}
                 onDelete={onDeleteCard}
                 onGroupCards={onGroupCards}
                 onUngroupCard={onUngroupCard}
+                onToggleReaction={onToggleReaction}
               />
             );
           })

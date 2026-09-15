@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 use rusqlite::{params, Connection, Result};
-use crate::models::{ActionItem, Board, BoardPhase, Card, Column, SafetyCheckSummary};
+use crate::models::{ActionItem, Board, BoardPhase, Card, CardReaction, Column, SafetyCheckSummary};
 
 #[derive(Clone)]
 pub struct Database {
@@ -90,6 +90,15 @@ impl Database {
                 status TEXT NOT NULL DEFAULT 'TODO',
                 created_at INTEGER NOT NULL,
                 FOREIGN KEY (board_id) REFERENCES boards(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS card_reactions (
+                card_id TEXT NOT NULL,
+                emoji TEXT NOT NULL,
+                session_hash TEXT NOT NULL,
+                created_at INTEGER NOT NULL,
+                PRIMARY KEY (card_id, emoji, session_hash),
+                FOREIGN KEY (card_id) REFERENCES cards(id) ON DELETE CASCADE
             );
 
             -- Migração: Renomear coluna antiga Action Items para Ideas & Kudos
@@ -247,13 +256,22 @@ impl Database {
     pub fn group_cards(&self, parent_card_id: &str, child_card_ids: &[String]) -> Result<()> {
         let mut conn = self.conn.lock().unwrap();
         let tx = conn.transaction()?;
+
+        // Obter column_id do card pai
+        let parent_col_id: String = tx.query_row(
+            "SELECT column_id FROM cards WHERE id = ?1",
+            params![parent_card_id],
+            |row| row.get(0),
+        )?;
+
         for child_id in child_card_ids {
+            // Só agrupa se o card filho pertencer estritamente à mesma coluna do card pai
+            // e NUNCA altera o column_id original do card
             tx.execute(
                 "UPDATE cards 
-                 SET parent_card_id = ?1,
-                     column_id = (SELECT column_id FROM cards WHERE id = ?1)
-                 WHERE id = ?2",
-                params![parent_card_id, child_id],
+                 SET parent_card_id = ?1
+                 WHERE id = ?2 AND column_id = ?3",
+                params![parent_card_id, child_id, parent_col_id],
             )?;
         }
         tx.commit()?;
@@ -267,6 +285,49 @@ impl Database {
             params![card_id],
         )?;
         Ok(())
+    }
+
+    pub fn move_card(&self, card_id: &str, target_column_id: &str) -> Result<()> {
+        let mut conn = self.conn.lock().unwrap();
+        let tx = conn.transaction()?;
+
+        // Mover o card para a nova coluna. Se era filho, desconecta do agrupamento antigo
+        tx.execute(
+            "UPDATE cards SET column_id = ?1, parent_card_id = NULL WHERE id = ?2",
+            params![target_column_id, card_id],
+        )?;
+
+        // Se este card possui filhos agrupados sob ele, move todos os filhos juntos para manter o cluster coeso
+        tx.execute(
+            "UPDATE cards SET column_id = ?1 WHERE parent_card_id = ?2",
+            params![target_column_id, card_id],
+        )?;
+
+        tx.commit()?;
+        Ok(())
+    }
+
+    pub fn toggle_reaction(&self, card_id: &str, emoji: &str, session_hash: &str) -> Result<bool> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT 1 FROM card_reactions WHERE card_id = ?1 AND emoji = ?2 AND session_hash = ?3"
+        )?;
+        let exists = stmt.exists(params![card_id, emoji, session_hash])?;
+
+        if exists {
+            conn.execute(
+                "DELETE FROM card_reactions WHERE card_id = ?1 AND emoji = ?2 AND session_hash = ?3",
+                params![card_id, emoji, session_hash],
+            )?;
+            Ok(false)
+        } else {
+            let now = chrono_or_now();
+            conn.execute(
+                "INSERT INTO card_reactions (card_id, emoji, session_hash, created_at) VALUES (?1, ?2, ?3, ?4)",
+                params![card_id, emoji, session_hash, now],
+            )?;
+            Ok(true)
+        }
     }
 
     pub fn get_cards(&self, board_id: &str) -> Result<Vec<Card>> {
@@ -294,6 +355,7 @@ impl Database {
                 is_ai_generated: is_ai != 0,
                 created_at: row.get(7)?,
                 vote_count: row.get(8)?,
+                reactions: Vec::new(),
                 is_masked: false,
             })
         })?;
@@ -302,6 +364,51 @@ impl Database {
         for c in rows {
             cards.push(c?);
         }
+
+        // Carregar reações agrupadas para todos os cards deste board
+        let mut react_stmt = conn.prepare(
+            "SELECT r.card_id, r.emoji, r.session_hash 
+             FROM card_reactions r
+             JOIN cards c ON c.id = r.card_id
+             WHERE c.board_id = ?1
+             ORDER BY r.created_at ASC"
+        )?;
+
+        let mut reactions_map: std::collections::HashMap<String, std::collections::HashMap<String, Vec<String>>> =
+            std::collections::HashMap::new();
+
+        let react_rows = react_stmt.query_map(params![board_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+            ))
+        })?;
+
+        for r in react_rows {
+            let (cid, emoji, shash) = r?;
+            reactions_map
+                .entry(cid)
+                .or_default()
+                .entry(emoji)
+                .or_default()
+                .push(shash);
+        }
+
+        for card in &mut cards {
+            if let Some(emojis) = reactions_map.remove(&card.id) {
+                for (emoji, users) in emojis {
+                    let count = users.len() as i32;
+                    card.reactions.push(CardReaction {
+                        emoji,
+                        count,
+                        users,
+                    });
+                }
+                card.reactions.sort_by(|a, b| b.count.cmp(&a.count));
+            }
+        }
+
         Ok(cards)
     }
 
@@ -534,6 +641,7 @@ mod tests {
                 is_masked: false,
                 is_ai_generated: false,
                 vote_count: 0,
+                reactions: Vec::new(),
                 created_at: 1000 + i,
             };
             db.create_card(&card).unwrap();
@@ -556,7 +664,7 @@ mod tests {
     }
 
     #[test]
-    fn test_grouping_cards_column_sync() {
+    fn test_grouping_cards_same_column_only() {
         let db = create_test_db();
         let board_id = "test_board_grouping";
         let board = Board {
@@ -587,30 +695,168 @@ mod tests {
             is_masked: false,
             is_ai_generated: false,
             vote_count: 0,
+            reactions: Vec::new(),
             created_at: 1000,
         };
-        let child_card = Card {
-            id: "card_child".to_string(),
-            column_id: col2_id.clone(), // Estava na Coluna 2
+        let child_same_col = Card {
+            id: "child_col1".to_string(),
+            column_id: col1_id.clone(), // Mesma coluna 1
             board_id: board_id.to_string(),
-            content: "Child Card".to_string(),
+            content: "Child in Col 1".to_string(),
             author_session_hash: "userB".to_string(),
             parent_card_id: None,
             is_masked: false,
             is_ai_generated: false,
             vote_count: 0,
+            reactions: Vec::new(),
             created_at: 1001,
         };
+        let child_diff_col = Card {
+            id: "child_col2".to_string(),
+            column_id: col2_id.clone(), // Coluna 2 diferente
+            board_id: board_id.to_string(),
+            content: "Child in Col 2".to_string(),
+            author_session_hash: "userC".to_string(),
+            parent_card_id: None,
+            is_masked: false,
+            is_ai_generated: false,
+            vote_count: 0,
+            reactions: Vec::new(),
+            created_at: 1002,
+        };
         db.create_card(&parent_card).unwrap();
-        db.create_card(&child_card).unwrap();
+        db.create_card(&child_same_col).unwrap();
+        db.create_card(&child_diff_col).unwrap();
 
-        // Agrupar child sob parent
-        db.group_cards("card_parent", &["card_child".to_string()]).unwrap();
+        // 1. Tentar agrupar child de coluna diferente -> deve ser bloqueado/ignorado
+        db.group_cards("card_parent", &["child_col2".to_string()]).unwrap();
+        let cards = db.get_cards(board_id).unwrap();
+        let diff_card = cards.iter().find(|c| c.id == "child_col2").unwrap();
+        assert_eq!(diff_card.parent_card_id, None);
+        assert_eq!(&diff_card.column_id, col2_id);
+
+        // 2. Agrupar child da mesma coluna -> Sucesso
+        db.group_cards("card_parent", &["child_col1".to_string()]).unwrap();
+        let cards = db.get_cards(board_id).unwrap();
+        let same_card = cards.iter().find(|c| c.id == "child_col1").unwrap();
+        assert_eq!(same_card.parent_card_id, Some("card_parent".to_string()));
+        assert_eq!(&same_card.column_id, col1_id);
+
+        // 3. Desagrupar (X) -> Mantém exatamente na coluna 1
+        db.ungroup_card("child_col1").unwrap();
+        let cards = db.get_cards(board_id).unwrap();
+        let ungrouped = cards.iter().find(|c| c.id == "child_col1").unwrap();
+        assert_eq!(ungrouped.parent_card_id, None);
+        assert_eq!(&ungrouped.column_id, col1_id);
+    }
+
+    #[test]
+    fn test_move_card_between_columns() {
+        let db = create_test_db();
+        let board_id = "test_board_move";
+        let board = Board {
+            id: board_id.to_string(),
+            title: "Move Test".to_string(),
+            phase: BoardPhase::Brainstorm,
+            facilitator_token: "tok".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+        let cols = [("Col1", "#10B981"), ("Col2", "#F43F5E")];
+        db.create_board(&board, &cols).unwrap();
+
+        let columns = db.get_columns(board_id).unwrap();
+        let col1_id = &columns[0].id;
+        let col2_id = &columns[1].id;
+
+        let card = Card {
+            id: "card_movable".to_string(),
+            column_id: col1_id.clone(),
+            board_id: board_id.to_string(),
+            content: "To Move".to_string(),
+            author_session_hash: "userA".to_string(),
+            parent_card_id: None,
+            is_masked: false,
+            is_ai_generated: false,
+            vote_count: 0,
+            reactions: Vec::new(),
+            created_at: 1000,
+        };
+        db.create_card(&card).unwrap();
+
+        // Mover para a Coluna 2
+        db.move_card("card_movable", col2_id).unwrap();
 
         let cards = db.get_cards(board_id).unwrap();
-        let updated_child = cards.iter().find(|c| c.id == "card_child").unwrap();
-        assert_eq!(updated_child.parent_card_id, Some("card_parent".to_string()));
-        // Sincronizado para a coluna do pai (col1)
-        assert_eq!(&updated_child.column_id, col1_id);
+        let moved = cards.iter().find(|c| c.id == "card_movable").unwrap();
+        assert_eq!(&moved.column_id, col2_id);
+    }
+
+    #[test]
+    fn test_card_reactions_toggle_and_aggregate() {
+        let db = create_test_db();
+        let board_id = "test_board_react";
+        let board = Board {
+            id: board_id.to_string(),
+            title: "React Test".to_string(),
+            phase: BoardPhase::Grouping,
+            facilitator_token: "tok".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+        let cols = [("Col1", "#10B981")];
+        db.create_board(&board, &cols).unwrap();
+
+        let columns = db.get_columns(board_id).unwrap();
+        let col1_id = &columns[0].id;
+
+        let card = Card {
+            id: "card_react".to_string(),
+            column_id: col1_id.clone(),
+            board_id: board_id.to_string(),
+            content: "Reaction Test".to_string(),
+            author_session_hash: "userA".to_string(),
+            parent_card_id: None,
+            is_masked: false,
+            is_ai_generated: false,
+            vote_count: 0,
+            reactions: Vec::new(),
+            created_at: 1000,
+        };
+        db.create_card(&card).unwrap();
+
+        // 1. User 1 reage com 👏
+        assert!(db.toggle_reaction("card_react", "👏", "user1").unwrap());
+        // 2. User 2 reage com 👏
+        assert!(db.toggle_reaction("card_react", "👏", "user2").unwrap());
+        // 3. User 1 reage com 🚀
+        assert!(db.toggle_reaction("card_react", "🚀", "user1").unwrap());
+
+        let cards = db.get_cards(board_id).unwrap();
+        let rc = cards.iter().find(|c| c.id == "card_react").unwrap();
+        assert_eq!(rc.reactions.len(), 2);
+        
+        let clap = rc.reactions.iter().find(|r| r.emoji == "👏").unwrap();
+        assert_eq!(clap.count, 2);
+        assert!(clap.users.contains(&"user1".to_string()));
+        assert!(clap.users.contains(&"user2".to_string()));
+
+        let rocket = rc.reactions.iter().find(|r| r.emoji == "🚀").unwrap();
+        assert_eq!(rocket.count, 1);
+        assert!(rocket.users.contains(&"user1".to_string()));
+
+        // 4. User 1 remove reação 👏 (toggle off)
+        assert!(!db.toggle_reaction("card_react", "👏", "user1").unwrap());
+        let cards_after = db.get_cards(board_id).unwrap();
+        let rc_after = cards_after.iter().find(|c| c.id == "card_react").unwrap();
+        let clap_after = rc_after.reactions.iter().find(|r| r.emoji == "👏").unwrap();
+        assert_eq!(clap_after.count, 1);
+        assert_eq!(clap_after.users, vec!["user2".to_string()]);
     }
 }

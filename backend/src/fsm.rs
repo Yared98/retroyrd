@@ -4,10 +4,7 @@ pub struct FsmGuard;
 
 impl FsmGuard {
     pub fn can_transition(current: BoardPhase, target: BoardPhase) -> bool {
-        match current.next_phase() {
-            Some(next) => next == target,
-            None => false,
-        }
+        current.next_phase() == Some(target) || current.previous_phase() == Some(target)
     }
 
     pub fn can_submit_safety(phase: BoardPhase) -> bool {
@@ -49,18 +46,26 @@ mod tests {
 
     #[test]
     fn test_phase_progression() {
+        // Forward transitions
         assert!(FsmGuard::can_transition(BoardPhase::SafetyCheck, BoardPhase::Brainstorm));
         assert!(FsmGuard::can_transition(BoardPhase::Brainstorm, BoardPhase::Grouping));
         assert!(FsmGuard::can_transition(BoardPhase::Grouping, BoardPhase::Voting));
         assert!(FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::ActionItems));
         assert!(FsmGuard::can_transition(BoardPhase::ActionItems, BoardPhase::Archived));
         
-        // Invalid transitions (backwards, skipping, archived)
+        // Backward transitions (Undo phase progression)
+        assert!(FsmGuard::can_transition(BoardPhase::Archived, BoardPhase::ActionItems));
+        assert!(FsmGuard::can_transition(BoardPhase::ActionItems, BoardPhase::Voting));
+        assert!(FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::Grouping));
+        assert!(FsmGuard::can_transition(BoardPhase::Grouping, BoardPhase::Brainstorm));
+        assert!(FsmGuard::can_transition(BoardPhase::Brainstorm, BoardPhase::SafetyCheck));
+
+        // Invalid transitions (skipping phases, self-transitions)
         assert!(!FsmGuard::can_transition(BoardPhase::Archived, BoardPhase::Brainstorm));
         assert!(!FsmGuard::can_transition(BoardPhase::SafetyCheck, BoardPhase::Voting));
-        assert!(!FsmGuard::can_transition(BoardPhase::Grouping, BoardPhase::Brainstorm));
-        assert!(!FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::Grouping));
+        assert!(!FsmGuard::can_transition(BoardPhase::Voting, BoardPhase::SafetyCheck));
         assert!(!FsmGuard::can_transition(BoardPhase::Archived, BoardPhase::Archived));
+        assert!(!FsmGuard::can_transition(BoardPhase::Brainstorm, BoardPhase::Brainstorm));
     }
 
     #[test]

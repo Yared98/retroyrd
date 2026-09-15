@@ -4,6 +4,7 @@ import {
   CheckCircle2, 
   Share2, 
   ArrowRight, 
+  ArrowLeft,
   Clock, 
   ShieldCheck, 
   Lightbulb, 
@@ -38,6 +39,7 @@ interface HeaderProps {
   onToggleTheme?: () => void;
   onControlTimer?: (action: 'START' | 'PAUSE' | 'ADD_SECONDS' | 'RESET', seconds?: number) => void;
   onNextPhase: (next: BoardPhase) => void;
+  onPrevPhase?: (prev: BoardPhase) => void;
   onExport: () => void;
   onToggleTelemetry?: () => void;
 }
@@ -64,6 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
   onControlTimer,
   onNextPhase,
+  onPrevPhase,
   onExport,
   onToggleTelemetry,
 }) => {
@@ -140,6 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const currentPhaseIndex = PHASES.findIndex((p) => p.key === phase);
+  const prevPhaseObj = currentPhaseIndex > 0 ? PHASES[currentPhaseIndex - 1] : undefined;
   const nextPhaseObj = PHASES[currentPhaseIndex + 1];
 
   const handleCopyLink = () => {
@@ -487,6 +491,33 @@ export const Header: React.FC<HeaderProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Botão de Voltar Fase (Apenas Facilitador) */}
+            {isFacilitator && prevPhaseObj && onPrevPhase && (
+              <button
+                onClick={() => onPrevPhase(prevPhaseObj.key)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-main)',
+                  padding: '0.42rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: 'var(--shadow-sm)',
+                  whiteSpace: 'nowrap',
+                  transition: 'all var(--transition-fast)',
+                }}
+                title={`Voltar para fase: ${prevPhaseObj.label}`}
+              >
+                <ArrowLeft size={14} />
+                <span className="header-btn-text">Voltar: {prevPhaseObj.label.split('. ')[1]}</span>
+              </button>
+            )}
 
             {/* Botão de Avanço de Fase (Apenas Facilitador) */}
             {isFacilitator && nextPhaseObj && (

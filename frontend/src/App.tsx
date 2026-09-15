@@ -6,6 +6,7 @@ import { SafetyCheckModal } from './components/SafetyCheckModal';
 import { ActionItemsView } from './components/ActionItemsView';
 import { McpTelemetryDrawer } from './components/McpTelemetryDrawer';
 import { CreateBoardModal } from './components/CreateBoardModal';
+import { Search, User, Sparkles, Star, X } from 'lucide-react';
 import type { BoardPhase } from './types';
 
 export function App() {
@@ -26,6 +27,8 @@ export function App() {
 
   const [isCreating, setIsCreating] = useState(false);
   const [showMcpDrawer, setShowMcpDrawer] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'ALL' | 'MINE' | 'AI' | 'VOTED'>('ALL');
   const [hasVotedSafety, setHasVotedSafety] = useState(() => {
     return boardId ? sessionStorage.getItem(`safety_voted_${boardId}`) === 'true' : false;
   });
@@ -56,6 +59,8 @@ export function App() {
     toggleVote,
     groupCards,
     ungroupCard,
+    moveCard,
+    toggleReaction,
     createAction,
     updateActionStatus,
     changePhase,
@@ -137,15 +142,52 @@ export function App() {
   // Controle de exibição do board completo durante a fase de Action Items
   const [showBoardReview, setShowBoardReview] = useState(false);
 
-  // Separação de cards por coluna
+  // Filtragem de cards por busca e chips de filtro
+  const filteredCards = useMemo(() => {
+    if (!snapshot) return [];
+    let list = snapshot.cards;
+
+    if (filterType === 'MINE') {
+      const myCardIds = new Set(
+        list.filter((c) => c.author_session_hash === snapshot.session_hash).map((c) => c.id)
+      );
+      list = list.filter((c) => myCardIds.has(c.id) || (c.parent_card_id && myCardIds.has(c.parent_card_id)));
+    } else if (filterType === 'AI') {
+      const aiCardIds = new Set(list.filter((c) => c.is_ai_generated).map((c) => c.id));
+      list = list.filter((c) => aiCardIds.has(c.id) || (c.parent_card_id && aiCardIds.has(c.parent_card_id)));
+    } else if (filterType === 'VOTED') {
+      list = list.filter(
+        (c) =>
+          c.vote_count > 0 ||
+          (c.parent_card_id &&
+            (snapshot.cards.find((p) => p.id === c.parent_card_id)?.vote_count || 0) > 0)
+      );
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      const matchedIds = new Set(
+        list.filter((c) => !c.is_masked && c.content.toLowerCase().includes(q)).map((c) => c.id)
+      );
+      list = list.filter((c) => {
+        if (matchedIds.has(c.id)) return true;
+        if (c.parent_card_id && matchedIds.has(c.parent_card_id)) return true;
+        return snapshot.cards.some((ch) => ch.parent_card_id === c.id && matchedIds.has(ch.id));
+      });
+    }
+
+    return list;
+  }, [snapshot, filterType, searchQuery]);
+
+  // Separação de cards por coluna usando os cards filtrados
   const cardsByColumn = useMemo(() => {
     if (!snapshot) return {};
     const map: Record<string, typeof snapshot.cards> = {};
     for (const col of sanitizedColumns) {
-      map[col.id] = snapshot.cards.filter((c) => c.column_id === col.id);
+      map[col.id] = filteredCards.filter((c) => c.column_id === col.id);
     }
     return map;
-  }, [snapshot, sanitizedColumns]);
+  }, [sanitizedColumns, filteredCards]);
 
   // Se não temos boardId na URL, exibir tela de criação
   if (!boardId) {
@@ -199,6 +241,7 @@ export function App() {
         onToggleTheme={toggleTheme}
         onControlTimer={controlTimer}
         onNextPhase={(nextPhase: BoardPhase) => changePhase(nextPhase)}
+        onPrevPhase={(prevPhase: BoardPhase) => changePhase(prevPhase)}
         onExport={handleExport}
         onToggleTelemetry={() => setShowMcpDrawer(!showMcpDrawer)}
       />
@@ -227,8 +270,104 @@ export function App() {
         width: '100%',
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
+        gap: '1.5rem',
       }}>
+        {/* Barra de Busca e Filtros Rápidos (exibida em todas as fases pós-Safety Check) */}
+        {board.phase !== 'SAFETY_CHECK' && (
+          <div className="board-toolbar">
+            <div className="board-search-input-wrapper">
+              <Search size={15} color="var(--text-dim)" />
+              <input
+                type="text"
+                className="board-search-input"
+                placeholder="Buscar cards por conteúdo..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-dim)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    padding: 0,
+                  }}
+                  title="Limpar busca"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className={`board-filter-chip ${filterType === 'ALL' ? 'is-active' : ''}`}
+                onClick={() => setFilterType('ALL')}
+              >
+                <span>Todos</span>
+                <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>({snapshot.cards.length})</span>
+              </button>
+
+              <button
+                type="button"
+                className={`board-filter-chip ${filterType === 'MINE' ? 'is-active' : ''}`}
+                onClick={() => setFilterType(filterType === 'MINE' ? 'ALL' : 'MINE')}
+                title="Mostrar apenas cards criados por você"
+              >
+                <User size={13} />
+                <span>Meus Cards</span>
+              </button>
+
+              <button
+                type="button"
+                className={`board-filter-chip ${filterType === 'AI' ? 'is-active' : ''}`}
+                onClick={() => setFilterType(filterType === 'AI' ? 'ALL' : 'AI')}
+                title="Mostrar apenas cards sugeridos via MCP / IA"
+              >
+                <Sparkles size={13} />
+                <span>Gerados por IA</span>
+              </button>
+
+              <button
+                type="button"
+                className={`board-filter-chip ${filterType === 'VOTED' ? 'is-active' : ''}`}
+                onClick={() => setFilterType(filterType === 'VOTED' ? 'ALL' : 'VOTED')}
+                title="Mostrar apenas cards que receberam votos"
+              >
+                <Star size={13} />
+                <span>Com Votos</span>
+              </button>
+
+              {(searchQuery !== '' || filterType !== 'ALL') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setFilterType('ALL');
+                  }}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-primary)',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    padding: '0.2rem 0.4rem',
+                    textDecoration: 'underline',
+                  }}
+                >
+                  Limpar ({filteredCards.length}/{snapshot.cards.length})
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Banner Explicativo da Fase de Grouping */}
         {board.phase === 'GROUPING' && (
           <div style={{
@@ -249,7 +388,7 @@ export function App() {
                   Fase 3: Agrupamento de Ideias Similares (Grouping)
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Todos os cards foram revelados! <strong>Arraste um card e solte sobre outro</strong> para agrupá-los em um cluster e evitar votos dispersos.
+                  Todos os cards foram revelados! <strong>Arraste um card e solte sobre outro da mesma coluna</strong> para agrupá-los em um cluster e evitar votos dispersos. Você também pode arrastar um card para outra coluna para movê-lo.
                 </div>
               </div>
             </div>
@@ -337,6 +476,8 @@ export function App() {
                 onDeleteCard={deleteCard}
                 onGroupCards={groupCards}
                 onUngroupCard={ungroupCard}
+                onMoveCard={moveCard}
+                onToggleReaction={toggleReaction}
               />
             ))}
           </div>
