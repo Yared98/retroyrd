@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check } from 'lucide-react';
+import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 
 interface CreateBoardModalProps {
@@ -19,6 +19,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   const [maxVotes, setMaxVotes] = useState(5);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>(() => getRecentSessions());
   const [copiedSessionId, setCopiedSessionId] = useState<string | null>(null);
+  const [sessionToDelete, setSessionToDelete] = useState<RecentSession | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -303,7 +304,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 
                     <button
                       type="button"
-                      onClick={() => handleRemoveSession(session.id)}
+                      onClick={() => setSessionToDelete(session)}
                       title="Remover do histórico deste navegador"
                       style={{
                         background: 'transparent',
@@ -313,7 +314,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                         padding: '0.3rem',
                         display: 'flex',
                         alignItems: 'center',
+                        transition: 'color var(--transition-fast)',
                       }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-to-improve)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-dim)'; }}
                     >
                       <Trash2 size={13} />
                     </button>
@@ -324,6 +328,113 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Modal de Confirmação de Exclusão de Sessão */}
+      {sessionToDelete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(9, 13, 22, 0.75)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '1.5rem',
+        }}>
+          <div className="glass-modal" style={{
+            maxWidth: 440,
+            width: '100%',
+            padding: '1.75rem',
+            background: 'var(--bg-surface-elevated)',
+            border: '1px solid var(--border-highlight)',
+            borderRadius: 'var(--radius-lg)',
+            boxShadow: 'var(--shadow-elevated)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
+              <div style={{
+                background: 'var(--color-to-improve-bg)',
+                border: '1px solid var(--color-to-improve-border)',
+                color: 'var(--color-to-improve)',
+                padding: '0.6rem',
+                borderRadius: 'var(--radius-md)',
+                display: 'flex',
+                flexShrink: 0,
+              }}>
+                <AlertTriangle size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                  Remover Sessão do Histórico?
+                </h3>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.4rem 0 0 0', lineHeight: 1.45 }}>
+                  Tem certeza que deseja remover a retrospectiva <strong style={{ color: 'var(--text-main)' }}>"{sessionToDelete.title}"</strong> deste navegador?
+                </p>
+              </div>
+            </div>
+
+            <div style={{
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.65rem 0.85rem',
+              fontSize: '0.75rem',
+              color: 'var(--text-dim)',
+              lineHeight: 1.4,
+            }}>
+              ⚠️ O link com token de facilitador salvo localmente será esquecido. Caso você não possua a URL salva externamente, você não conseguirá reaver os privilégios de facilitador nesta sessão.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setSessionToDelete(null)}
+                style={{
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.55rem 1rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleRemoveSession(sessionToDelete.id);
+                  setSessionToDelete(null);
+                }}
+                style={{
+                  background: 'var(--color-to-improve)',
+                  border: 'none',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.55rem 1.1rem',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                <Trash2 size={14} />
+                <span>Sim, Remover</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
