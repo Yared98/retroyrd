@@ -22,7 +22,8 @@ import {
   Plus,
   Bell,
   Sun,
-  Moon
+  Moon,
+  Home
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 
@@ -42,6 +43,7 @@ interface HeaderProps {
   onPrevPhase?: (prev: BoardPhase) => void;
   onExport: () => void;
   onToggleTelemetry?: () => void;
+  onHome?: () => void;
 }
 
 const PHASES: { key: BoardPhase; label: string; icon: React.ComponentType<{ size: number }> }[] = [
@@ -69,6 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
   onPrevPhase,
   onExport,
   onToggleTelemetry,
+  onHome,
 }) => {
   const [copied, setCopied] = useState(false);
   const [localSeconds, setLocalSeconds] = useState(timerSecondsRemaining);
@@ -198,18 +201,34 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
             </div>
-            <h1 style={{
-              fontSize: '1.25rem',
-              fontWeight: 800,
-              color: 'var(--text-main)',
-              letterSpacing: '-0.02em',
-              margin: '0.1rem 0 0 0',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}>
-              {title}
-            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.15rem' }}>
+              <a
+                href="/"
+                onClick={(e) => {
+                  if (onHome) {
+                    e.preventDefault();
+                    onHome();
+                  }
+                }}
+                className="header-home-btn"
+                title="Voltar para a Página Inicial (Home)"
+                aria-label="Página Inicial"
+              >
+                <Home size={14} />
+              </a>
+              <h1 style={{
+                fontSize: '1.25rem',
+                fontWeight: 800,
+                color: 'var(--text-main)',
+                letterSpacing: '-0.02em',
+                margin: 0,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}>
+                {title}
+              </h1>
+            </div>
           </div>
         </div>
 

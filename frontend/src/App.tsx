@@ -261,6 +261,9 @@ export function App() {
         onPrevPhase={(prevPhase: BoardPhase) => changePhase(prevPhase)}
         onExport={handleExport}
         onToggleTelemetry={() => setShowMcpDrawer(!showMcpDrawer)}
+        onHome={() => {
+          window.location.href = '/';
+        }}
       />
 
       {/* Fase 1: Modal de Safety Check (se a fase atual for SAFETY_CHECK) */}
