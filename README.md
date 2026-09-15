@@ -67,6 +67,12 @@ docker-compose up -d --build
 ```
 A aplicação estará disponível em `http://localhost:8080` com persistência automática no volume `retro_data`.
 
+#### Variáveis de Ambiente Opcionais (`.env`)
+Copie o arquivo `.env.example` para `.env` para customizar:
+* `BOARD_RETENTION_DAYS`: Dias de inatividade antes do auto-purge de boards antigos (Padrão: `60`).
+* `UMAMI_SCRIPT_URL`: URL do script do seu Umami Analytics (ex: `https://analytics.yared.com.br/script.js`).
+* `UMAMI_WEBSITE_ID`: ID do site no Umami. Se não configurado, nenhuma telemetria é carregada.
+
 ---
 
 ### Opção 2: Desenvolvimento Local

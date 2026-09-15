@@ -9,6 +9,7 @@ import { CreateBoardModal } from './components/CreateBoardModal';
 import { Footer } from './components/Footer';
 import { saveRecentSession } from './utils/recentSessions';
 import { getSafetyAssessment } from './utils/safety';
+import { initAnalytics, trackPageView, trackEvent } from './utils/analytics';
 import { Search, User, Sparkles, Star, X, ShieldCheck } from 'lucide-react';
 import type { BoardPhase } from './types';
 
@@ -78,14 +79,21 @@ export function App() {
     }
   }, [boardId, facilitatorToken]);
 
-  // Atualizar title da aba do navegador para Retroyrd
+  // Inicialização dinâmica do Umami Analytics (apenas se configurado via .env / backend)
   useEffect(() => {
-    if (snapshot?.board?.title) {
-      document.title = `${snapshot.board.title} — Retroyrd`;
-    } else {
-      document.title = 'Retroyrd — Retrospectivas Ágeis em Tempo Real';
-    }
-  }, [snapshot?.board?.title]);
+    initAnalytics();
+  }, []);
+
+  // Atualizar title da aba do navegador para Retroyrd e enviar pageview higienizado
+  useEffect(() => {
+    const pageTitle = snapshot?.board?.title 
+      ? `${snapshot.board.title} — Retroyrd` 
+      : 'Retroyrd — Retrospectivas Ágeis em Tempo Real';
+    document.title = pageTitle;
+
+    // Mascarar rotas: nunca enviar IDs ou tokens para o analytics
+    trackPageView(boardId ? '/board' : '/', pageTitle);
+  }, [boardId, snapshot?.board?.title]);
 
   // Criação de novo board via HTTP POST /api/boards
   const handleCreateBoard = async (title: string, maxVotesPerUser: number = 5) => {
@@ -99,6 +107,7 @@ export function App() {
       });
       const data = await res.json();
       if (data.id) {
+        trackEvent('board_created', { max_votes: maxVotesPerUser });
         saveRecentSession({
           id: data.id,
           title,
@@ -130,6 +139,7 @@ export function App() {
   // Exportar resumo em Markdown garantindo download de arquivo com extensão .md
   const handleExport = async () => {
     if (!boardId) return;
+    trackEvent('export_board', { format: 'markdown' });
     const apiHost = window.location.port === '5173' ? 'http://localhost:8080' : '';
     try {
       const res = await fetch(`${apiHost}/api/boards/${boardId}/export`);
@@ -268,11 +278,27 @@ export function App() {
         userVotedCount={user_voted_card_ids.length}
         theme={theme}
         onToggleTheme={toggleTheme}
-        onControlTimer={controlTimer}
-        onNextPhase={(nextPhase: BoardPhase) => changePhase(nextPhase)}
-        onPrevPhase={(prevPhase: BoardPhase) => changePhase(prevPhase)}
+        onControlTimer={(action, seconds) => {
+          if (action === 'START') {
+            trackEvent('timer_started', { seconds: seconds || 300 });
+          }
+          controlTimer(action, seconds);
+        }}
+        onNextPhase={(nextPhase: BoardPhase) => {
+          trackEvent('phase_changed', { to_phase: nextPhase });
+          changePhase(nextPhase);
+        }}
+        onPrevPhase={(prevPhase: BoardPhase) => {
+          trackEvent('phase_changed', { to_phase: prevPhase });
+          changePhase(prevPhase);
+        }}
         onExport={handleExport}
-        onToggleTelemetry={() => setShowMcpDrawer(!showMcpDrawer)}
+        onToggleTelemetry={() => {
+          if (!showMcpDrawer) {
+            trackEvent('mcp_drawer_opened');
+          }
+          setShowMcpDrawer(!showMcpDrawer);
+        }}
         onHome={() => {
           window.location.href = '/';
         }}
@@ -384,6 +410,7 @@ export function App() {
             if (boardId) sessionStorage.setItem(`safety_voted_${boardId}`, 'true');
           }}
           onSubmit={(score) => {
+            trackEvent('safety_check_submitted', { score });
             submitSafety(score);
             setHasVotedSafety(true);
             if (boardId) sessionStorage.setItem(`safety_voted_${boardId}`, 'true');

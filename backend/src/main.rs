@@ -75,6 +75,7 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health_check))
         .route("/robots.txt", get(robots_txt_handler))
+        .route("/api/config", get(client_config_handler))
         .route("/api/boards", post(create_board_handler))
         .route("/api/boards/{id}", get(get_board_handler))
         .route("/api/boards/{id}/export", get(export_board_handler))
@@ -111,6 +112,19 @@ async fn robots_txt_handler() -> impl IntoResponse {
         ],
         "# Bloqueio estrito de rastreadores e motores de busca\nUser-agent: *\nDisallow: /\n",
     )
+}
+
+#[derive(serde::Serialize)]
+struct ClientConfig {
+    umami_script_url: Option<String>,
+    umami_website_id: Option<String>,
+}
+
+async fn client_config_handler() -> Json<ClientConfig> {
+    Json(ClientConfig {
+        umami_script_url: std::env::var("UMAMI_SCRIPT_URL").ok().filter(|s| !s.trim().is_empty()),
+        umami_website_id: std::env::var("UMAMI_WEBSITE_ID").ok().filter(|s| !s.trim().is_empty()),
+    })
 }
 
 async fn spa_fallback() -> impl IntoResponse {
