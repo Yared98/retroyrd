@@ -8,7 +8,7 @@ impl FsmGuard {
     }
 
     pub fn can_submit_safety(phase: BoardPhase) -> bool {
-        phase == BoardPhase::SafetyCheck
+        phase != BoardPhase::Archived
     }
 
     pub fn can_create_card(phase: BoardPhase) -> bool {
@@ -75,8 +75,8 @@ mod tests {
         assert!(!FsmGuard::can_create_card(BoardPhase::SafetyCheck));
         assert!(!FsmGuard::can_vote(BoardPhase::SafetyCheck));
 
-        // BRAINSTORM
-        assert!(!FsmGuard::can_submit_safety(BoardPhase::Brainstorm));
+        // BRAINSTORM (permite retardatários votarem no safety check)
+        assert!(FsmGuard::can_submit_safety(BoardPhase::Brainstorm));
         assert!(FsmGuard::can_create_card(BoardPhase::Brainstorm));
         assert!(FsmGuard::can_edit_card(BoardPhase::Brainstorm));
         assert!(FsmGuard::can_delete_card(BoardPhase::Brainstorm));

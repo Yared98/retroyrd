@@ -372,12 +372,17 @@ export function App() {
         );
       })()}
 
-      {/* Fase 1: Modal de Safety Check (se a fase atual for SAFETY_CHECK) */}
-      {board.phase === 'SAFETY_CHECK' && (
+      {/* Modal de Safety Check: Exibido na Fase 1 ou como convite para novos participantes em qualquer fase ativa */}
+      {board.phase !== 'ARCHIVED' && (board.phase === 'SAFETY_CHECK' || !hasVotedSafety) && (
         <SafetyCheckModal
           hasVoted={hasVotedSafety}
           isFacilitator={is_facilitator}
           safetySummary={safety_summary}
+          phase={board.phase}
+          onDismiss={() => {
+            setHasVotedSafety(true);
+            if (boardId) sessionStorage.setItem(`safety_voted_${boardId}`, 'true');
+          }}
           onSubmit={(score) => {
             submitSafety(score);
             setHasVotedSafety(true);

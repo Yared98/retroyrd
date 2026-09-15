@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Check, Crown, ArrowRight, Eye, BarChart2 } from 'lucide-react';
+import { ShieldCheck, Check, Crown, ArrowRight, Eye, BarChart2, X } from 'lucide-react';
 import type { SafetyCheckSummary, BoardPhase } from '../types';
 
 interface SafetyCheckModalProps {
   hasVoted: boolean;
   isFacilitator: boolean;
   safetySummary?: SafetyCheckSummary | null;
+  phase?: BoardPhase;
+  onDismiss?: () => void;
   onSubmit: (score: number) => void;
   onNextPhase?: (nextPhase: BoardPhase) => void;
 }
@@ -22,9 +24,12 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
   hasVoted,
   isFacilitator,
   safetySummary,
+  phase,
+  onDismiss,
   onSubmit,
   onNextPhase,
 }) => {
+  const isLateJoin = phase !== undefined && phase !== 'SAFETY_CHECK';
   const [selectedScore, setSelectedScore] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(hasVoted);
   const [activeTab, setActiveTab] = useState<'VOTE' | 'FACILITATOR_RESULTS'>(
@@ -135,37 +140,69 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Fase 1: Checagem de Segurança Psicológica
+                {isLateJoin ? 'Checagem de Segurança Psicológica' : 'Fase 1: Checagem de Segurança Psicológica'}
               </div>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', margin: 0 }}>
                 Como você se sente para falar abertamente hoje?
               </h2>
+              {isLateJoin && (
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>
+                  A retrospectiva já começou, mas sua opinião anônima é fundamental para o clima da equipe!
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Minimizar para espiar board */}
-          <button
-            onClick={() => setIsMinimized(true)}
-            style={{
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-muted)',
-              borderRadius: 'var(--radius-md)',
-              padding: '0.4rem 0.75rem',
-              cursor: 'pointer',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              flexShrink: 0,
-              transition: 'all var(--transition-fast)',
-            }}
-            title="Minimizar e espiar o board"
-          >
-            <Eye size={14} />
-            <span>Espiar Board</span>
-          </button>
+          {/* Botões do Topo: Pular (se late join) e Espiar Board */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            {isLateJoin && onDismiss && (
+              <button
+                onClick={onDismiss}
+                style={{
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.4rem 0.75rem',
+                  cursor: 'pointer',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  flexShrink: 0,
+                  transition: 'all var(--transition-fast)',
+                }}
+                title="Pular checagem por enquanto"
+              >
+                <X size={14} />
+                <span>Pular</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setIsMinimized(true)}
+              style={{
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-muted)',
+                borderRadius: 'var(--radius-md)',
+                padding: '0.4rem 0.75rem',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                flexShrink: 0,
+                transition: 'all var(--transition-fast)',
+              }}
+              title="Minimizar e espiar o board"
+            >
+              <Eye size={14} />
+              <span>Espiar</span>
+            </button>
+          </div>
         </div>
 
         {/* Abas para Facilitador (Votar vs Ver Resultados) */}
@@ -304,8 +341,30 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                     Enviar Minha Avaliação
                   </button>
 
-                  {/* Se for Facilitador, pode pular o voto e avançar direto */}
-                  {isFacilitator && onNextPhase && (
+                  {/* Se for late-join, botão de pular */}
+                  {isLateJoin && onDismiss && (
+                    <button
+                      type="button"
+                      onClick={onDismiss}
+                      style={{
+                        padding: '0.75rem 1.25rem',
+                        borderRadius: 'var(--radius-md)',
+                        background: 'var(--bg-subtle)',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                        transition: 'all var(--transition-fast)',
+                      }}
+                    >
+                      Pular
+                    </button>
+                  )}
+
+                  {/* Se for Facilitador na fase 1, pode pular o voto e avançar direto */}
+                  {!isLateJoin && isFacilitator && onNextPhase && (
                     <button
                       onClick={() => onNextPhase('BRAINSTORM')}
                       style={{
@@ -344,12 +403,40 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   Avaliação Registrada!
                 </h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
-                  {isFacilitator
+                  {isLateJoin
+                    ? 'Sua nota foi computada anonimamente na média de clima da equipe.'
+                    : isFacilitator
                     ? 'Como facilitador, você pode monitorar a distribuição abaixo e avançar para o Brainstorm.'
                     : 'Aguarde o facilitador avançar a sessão para a fase de Brainstorming.'}
                 </p>
 
-                {isFacilitator && onNextPhase && (
+                {isLateJoin && onDismiss && (
+                  <button
+                    onClick={onDismiss}
+                    style={{
+                      width: '100%',
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: 'var(--color-primary)',
+                      border: 'none',
+                      color: '#ffffff',
+                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    <span>Continuar para o Board</span>
+                    <ArrowRight size={18} />
+                  </button>
+                )}
+
+                {!isLateJoin && isFacilitator && onNextPhase && (
                   <button
                     onClick={() => onNextPhase('BRAINSTORM')}
                     style={{
