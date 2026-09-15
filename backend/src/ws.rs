@@ -85,14 +85,34 @@ async fn handle_socket(
     }
 
     // 2. Tarefa para receber mensagens do broadcast da sala e enviar para este cliente WebSocket
+    // Inclui heartbeat ping a cada 30s para evitar timeout de inatividade em proxies reversos (ex: Cloudflare Tunnel)
     let session_hash_clone = session_hash.clone();
     let mut send_task = tokio::spawn(async move {
-        while let Ok(msg) = room_receiver.recv().await {
-            // Filtrar ou mascarar no broadcast se for mensagem de cards e fase for BRAINSTORM
-            let final_msg = mask_message_for_recipient(&msg, &session_hash_clone);
-            if let Ok(text) = serde_json::to_string(&final_msg) {
-                if ws_sender.send(Message::Text(text.into())).await.is_err() {
-                    break;
+        let mut ping_interval = tokio::time::interval(std::time::Duration::from_secs(30));
+        // O primeiro tick é disparado imediatamente, então podemos ignorar ou deixá-lo passar
+        ping_interval.tick().await;
+
+        loop {
+            tokio::select! {
+                _ = ping_interval.tick() => {
+                    if ws_sender.send(Message::Ping(Default::default())).await.is_err() {
+                        break;
+                    }
+                }
+                recv_res = room_receiver.recv() => {
+                    match recv_res {
+                        Ok(msg) => {
+                            // Filtrar ou mascarar no broadcast se for mensagem de cards e fase for BRAINSTORM
+                            let final_msg = mask_message_for_recipient(&msg, &session_hash_clone);
+                            if let Ok(text) = serde_json::to_string(&final_msg) {
+                                if ws_sender.send(Message::Text(text.into())).await.is_err() {
+                                    break;
+                                }
+                            }
+                        }
+                        Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => continue,
+                        Err(_) => break,
+                    }
                 }
             }
         }
