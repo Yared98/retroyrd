@@ -216,6 +216,17 @@ impl Database {
         Ok(columns)
     }
 
+    pub fn cleanup_expired_boards(&self, retention_days: i64) -> Result<usize> {
+        let conn = self.conn.lock().unwrap();
+        let now = chrono_or_now();
+        let cutoff_ms = now - (retention_days * 24 * 3600 * 1000);
+        let count = conn.execute(
+            "DELETE FROM boards WHERE created_at < ?1",
+            params![cutoff_ms],
+        )?;
+        Ok(count)
+    }
+
     pub fn create_card(&self, card: &Card) -> Result<()> {
         let conn = self.conn.lock().unwrap();
         conn.execute(
@@ -858,5 +869,45 @@ mod tests {
         let clap_after = rc_after.reactions.iter().find(|r| r.emoji == "👏").unwrap();
         assert_eq!(clap_after.count, 1);
         assert_eq!(clap_after.users, vec!["user2".to_string()]);
+    }
+
+    #[test]
+    fn test_cleanup_expired_boards() {
+        let db = create_test_db();
+        let now = chrono_or_now();
+        let sixty_five_days_ago = now - (65 * 24 * 3600 * 1000);
+
+        let old_board = Board {
+            id: "board_old".to_string(),
+            title: "Old Board".to_string(),
+            phase: BoardPhase::Archived,
+            facilitator_token: "tok1".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: sixty_five_days_ago,
+        };
+        let new_board = Board {
+            id: "board_new".to_string(),
+            title: "New Board".to_string(),
+            phase: BoardPhase::Brainstorm,
+            facilitator_token: "tok2".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: now,
+        };
+
+        db.create_board(&old_board, &[("Col1", "#10B981")]).unwrap();
+        db.create_board(&new_board, &[("Col1", "#10B981")]).unwrap();
+
+        // Limpeza com 60 dias de retenção
+        let purged = db.cleanup_expired_boards(60).unwrap();
+        assert_eq!(purged, 1);
+
+        assert!(db.get_board("board_old").unwrap().is_none());
+        assert!(db.get_board("board_new").unwrap().is_some());
     }
 }

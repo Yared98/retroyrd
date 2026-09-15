@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon } from 'lucide-react';
+import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check } from 'lucide-react';
+import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
@@ -16,12 +17,26 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [maxVotes, setMaxVotes] = useState(5);
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>(() => getRecentSessions());
+  const [copiedSessionId, setCopiedSessionId] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
       onCreate(title.trim(), maxVotes);
     }
+  };
+
+  const handleCopyInvite = (sessionId: string) => {
+    const url = `${window.location.origin}/board/${sessionId}`;
+    navigator.clipboard.writeText(url);
+    setCopiedSessionId(sessionId);
+    setTimeout(() => setCopiedSessionId(null), 2000);
+  };
+
+  const handleRemoveSession = (sessionId: string) => {
+    const updated = removeRecentSession(sessionId);
+    setRecentSessions(updated);
   };
 
   const voteOptions = [
@@ -203,6 +218,111 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             <ArrowRight size={16} />
           </button>
         </form>
+
+        {/* Histórico de Sessões Recentes (Facilitador) */}
+        {recentSessions.length > 0 && (
+          <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
+                <History size={15} color="var(--color-primary)" />
+                <span>Sessões Anteriores (Facilitador)</span>
+              </div>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'var(--bg-subtle)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
+                {recentSessions.length} {recentSessions.length === 1 ? 'sessão' : 'sessões'}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: 220, overflowY: 'auto', paddingRight: '0.25rem' }}>
+              {recentSessions.map((session) => (
+                <div
+                  key={session.id}
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '0.75rem 0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {session.title}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '0.15rem' }}>
+                      {new Date(session.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyInvite(session.id)}
+                      title="Copiar link de convite"
+                      style={{
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.35rem 0.55rem',
+                        fontSize: '0.75rem',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}
+                    >
+                      {copiedSessionId === session.id ? <Check size={12} color="var(--color-went-well)" /> : <Share2 size={12} />}
+                      <span>{copiedSessionId === session.id ? 'Copiado!' : 'Convidar'}</span>
+                    </button>
+
+                    <a
+                      href={`/board/${session.id}?token=${session.facilitatorToken}`}
+                      style={{
+                        background: 'var(--color-primary-subtle)',
+                        border: '1px solid var(--color-primary)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.35rem 0.65rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: 'var(--color-primary)',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                        transition: 'all var(--transition-fast)',
+                      }}
+                      title="Abrir como facilitador com token de acesso"
+                    >
+                      <span>Acessar</span>
+                      <ExternalLink size={12} />
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveSession(session.id)}
+                      title="Remover do histórico deste navegador"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-dim)',
+                        cursor: 'pointer',
+                        padding: '0.3rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

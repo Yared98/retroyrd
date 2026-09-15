@@ -6,6 +6,7 @@ import { SafetyCheckModal } from './components/SafetyCheckModal';
 import { ActionItemsView } from './components/ActionItemsView';
 import { McpTelemetryDrawer } from './components/McpTelemetryDrawer';
 import { CreateBoardModal } from './components/CreateBoardModal';
+import { saveRecentSession } from './utils/recentSessions';
 import { Search, User, Sparkles, Star, X } from 'lucide-react';
 import type { BoardPhase } from './types';
 
@@ -86,6 +87,11 @@ export function App() {
       });
       const data = await res.json();
       if (data.id) {
+        saveRecentSession({
+          id: data.id,
+          title,
+          facilitatorToken: data.facilitator_token,
+        });
         setBoardId(data.id);
         setFacilitatorToken(data.facilitator_token);
         sessionStorage.setItem(`facilitator_token_${data.id}`, data.facilitator_token);
@@ -97,6 +103,17 @@ export function App() {
       setIsCreating(false);
     }
   };
+
+  // Salvar automaticamente sessões abertas pelo facilitador no histórico local
+  useEffect(() => {
+    if (snapshot?.board && snapshot.is_facilitator && facilitatorToken) {
+      saveRecentSession({
+        id: snapshot.board.id,
+        title: snapshot.board.title,
+        facilitatorToken,
+      });
+    }
+  }, [snapshot?.board?.id, snapshot?.board?.title, snapshot?.is_facilitator, facilitatorToken]);
 
   // Exportar resumo em Markdown garantindo download de arquivo com extensão .md
   const handleExport = async () => {

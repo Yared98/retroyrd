@@ -13,6 +13,7 @@ services:
       - PORT=8080
       - DATABASE_URL=/app/data/retro.db
       - STATIC_DIR=/app/dist
+      - BOARD_RETENTION_DAYS=60
       - RUST_LOG=backend=info,tower_http=info
     volumes:
       - retro_data:/app/data

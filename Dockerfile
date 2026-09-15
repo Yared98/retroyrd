@@ -42,6 +42,7 @@ COPY --from=frontend-builder /app/frontend/dist /app/dist
 ENV PORT=8080
 ENV DATABASE_URL=/app/data/retro.db
 ENV STATIC_DIR=/app/dist
+ENV BOARD_RETENTION_DAYS=60
 ENV RUST_LOG=backend=info,tower_http=info
 
 EXPOSE 8080
