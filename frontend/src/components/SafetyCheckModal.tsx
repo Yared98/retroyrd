@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Lock, Check, Crown, ArrowRight, Eye, BarChart2 } from 'lucide-react';
+import { ShieldCheck, Check, Crown, ArrowRight, Eye, BarChart2 } from 'lucide-react';
 import type { SafetyCheckSummary, BoardPhase } from '../types';
 
 interface SafetyCheckModalProps {
@@ -144,7 +144,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           <button
             onClick={() => setIsMinimized(true)}
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
+              background: 'var(--bg-subtle)',
               border: '1px solid var(--border-subtle)',
               color: 'var(--text-muted)',
               borderRadius: 'var(--radius-md)',
@@ -156,6 +156,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
               alignItems: 'center',
               gap: '0.35rem',
               flexShrink: 0,
+              transition: 'all var(--transition-fast)',
             }}
             title="Minimizar e espiar o board"
           >
@@ -169,7 +170,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           <div style={{
             display: 'flex',
             gap: '0.5rem',
-            background: 'rgba(0, 0, 0, 0.3)',
+            background: 'var(--bg-subtle)',
             padding: '0.25rem',
             borderRadius: 'var(--radius-md)',
             marginBottom: '1.25rem',
@@ -181,11 +182,12 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 padding: '0.4rem',
                 borderRadius: 'var(--radius-sm)',
                 border: 'none',
-                background: activeTab === 'VOTE' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                background: activeTab === 'VOTE' ? 'var(--color-primary-subtle)' : 'transparent',
                 color: activeTab === 'VOTE' ? 'var(--color-primary)' : 'var(--text-dim)',
                 fontWeight: 700,
                 fontSize: '0.8rem',
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
               }}
             >
               Meu Voto
@@ -197,11 +199,12 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 padding: '0.4rem',
                 borderRadius: 'var(--radius-sm)',
                 border: 'none',
-                background: activeTab === 'FACILITATOR_RESULTS' ? 'rgba(99, 102, 241, 0.25)' : 'transparent',
+                background: activeTab === 'FACILITATOR_RESULTS' ? 'var(--color-primary-subtle)' : 'transparent',
                 color: activeTab === 'FACILITATOR_RESULTS' ? 'var(--color-primary)' : 'var(--text-dim)',
                 fontWeight: 700,
                 fontSize: '0.8rem',
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -209,33 +212,21 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
               }}
             >
               <BarChart2 size={14} />
-              <span>Resultados da Equipe ({safetySummary?.count || 0})</span>
+              <span>Histograma da Equipe ({safetySummary?.count || 0})</span>
             </button>
           </div>
         )}
 
         {/* VISÃO 1: FORMULÁRIO DE VOTO */}
         {activeTab === 'VOTE' && (
-          <>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: '1.5' }}>
-              Retrospectivas produtivas dependem de honestidade sem medo de julgamentos ou retaliações. Sua resposta é crucial para calibrar a dinâmica da cerimônia.
-            </p>
-
-            {/* Garantia de Anonimato Inviolável */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.6rem',
-              background: 'rgba(16, 185, 129, 0.08)',
-              border: '1px solid rgba(16, 185, 129, 0.25)',
-              padding: '0.65rem 0.85rem',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: '1.25rem',
-            }}>
-              <Lock size={16} color="var(--color-went-well)" />
-              <span style={{ fontSize: '0.78rem', color: '#a7f3d0', lineHeight: '1.4' }}>
-                <strong>100% Confidencial:</strong> Nenhum IP, usuário ou identificador de sessão é armazenado junto com a nota.
-              </span>
+          <div>
+            <div style={{ marginBottom: '1.25rem' }}>
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
+                Como você se sente para se expressar nesta retrospectiva?
+              </div>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Sua resposta é 100% anônima. Nenhuma identificação de usuário ou sessão é vinculada à sua nota.
+              </div>
             </div>
 
             {!submitted ? (
@@ -253,10 +244,10 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                           justifyContent: 'space-between',
                           padding: '0.65rem 0.85rem',
                           borderRadius: 'var(--radius-md)',
-                          background: isSelected ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.03)',
+                          background: isSelected ? 'var(--color-primary-subtle)' : 'var(--bg-subtle)',
                           border: `1px solid ${isSelected ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
                           cursor: 'pointer',
-                          transition: 'all 0.15s ease',
+                          transition: 'all var(--transition-fast)',
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -264,7 +255,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                             width: 26,
                             height: 26,
                             borderRadius: '50%',
-                            background: isSelected ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.06)',
+                            background: isSelected ? 'var(--color-primary)' : 'var(--bg-subtle-hover)',
                             color: isSelected ? '#ffffff' : 'var(--text-muted)',
                             display: 'flex',
                             alignItems: 'center',
@@ -297,14 +288,14 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       flex: 1,
                       padding: '0.75rem',
                       borderRadius: 'var(--radius-md)',
-                      background: selectedScore !== null ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.1)',
+                      background: selectedScore !== null ? 'var(--color-primary)' : 'var(--bg-subtle)',
                       border: 'none',
-                      color: '#ffffff',
+                      color: selectedScore !== null ? '#ffffff' : 'var(--text-dim)',
                       fontSize: '0.9rem',
                       fontWeight: 700,
                       cursor: selectedScore !== null ? 'pointer' : 'not-allowed',
-                      boxShadow: selectedScore !== null ? '0 0 20px var(--color-primary-glow)' : 'none',
-                      transition: 'all 0.15s',
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'all var(--transition-fast)',
                     }}
                   >
                     Enviar Minha Avaliação
@@ -317,9 +308,9 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       style={{
                         padding: '0.75rem 1.25rem',
                         borderRadius: 'var(--radius-md)',
-                        background: 'rgba(16, 185, 129, 0.2)',
-                        border: '1px solid var(--color-went-well)',
-                        color: '#6ee7b7',
+                        background: 'var(--color-went-well-bg)',
+                        border: '1px solid var(--color-went-well-border)',
+                        color: 'var(--color-went-well)',
                         fontSize: '0.85rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -327,6 +318,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                         alignItems: 'center',
                         gap: '0.4rem',
                         whiteSpace: 'nowrap',
+                        transition: 'all var(--transition-fast)',
                       }}
                     >
                       <span>Avançar Fase →</span>
@@ -371,7 +363,8 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.5rem',
-                      boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+                      boxShadow: 'var(--shadow-sm)',
+                      transition: 'all var(--transition-fast)',
                     }}
                   >
                     <span>Iniciar Fase 2: Brainstorming (Modo Cego)</span>
@@ -380,14 +373,14 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
 
         {/* VISÃO 2: RESULTADOS AGREGADOS (PAINEL DO FACILITADOR) */}
         {activeTab === 'FACILITATOR_RESULTS' && isFacilitator && (
           <div>
             <div style={{
-              background: 'rgba(0, 0, 0, 0.4)',
+              background: 'var(--bg-subtle)',
               padding: '1.25rem',
               borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border-subtle)',
@@ -404,7 +397,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 </div>
 
                 <div style={{
-                  background: 'rgba(255, 255, 255, 0.06)',
+                  background: 'var(--bg-subtle)',
                   padding: '0.4rem 0.75rem',
                   borderRadius: 'var(--radius-full)',
                   fontSize: '0.8rem',
@@ -424,7 +417,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   return (
                     <div key={scoreNum} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem' }}>
                       <span style={{ width: 50, color: 'var(--text-muted)' }}>Nota {scoreNum}:</span>
-                      <div style={{ flex: 1, height: 10, background: 'rgba(255, 255, 255, 0.08)', borderRadius: 5, overflow: 'hidden' }}>
+                      <div style={{ flex: 1, height: 10, background: 'var(--border-subtle)', borderRadius: 5, overflow: 'hidden' }}>
                         <div style={{
                           width: `${percent}%`,
                           height: '100%',

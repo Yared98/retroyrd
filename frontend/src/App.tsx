@@ -30,6 +30,22 @@ export function App() {
     return boardId ? sessionStorage.getItem(`safety_voted_${boardId}`) === 'true' : false;
   });
 
+  // Tema: Claro vs Escuro (persistido em localStorage com fallback para o sistema)
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('retroyrd_theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('retroyrd_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   const {
     snapshot,
     isConnected,
@@ -77,11 +93,34 @@ export function App() {
     }
   };
 
-  // Exportar resumo em Markdown
-  const handleExport = () => {
+  // Exportar resumo em Markdown garantindo download de arquivo com extensão .md
+  const handleExport = async () => {
     if (!boardId) return;
     const apiHost = window.location.port === '5173' ? 'http://localhost:8080' : '';
-    window.open(`${apiHost}/api/boards/${boardId}/export`, '_blank');
+    try {
+      const res = await fetch(`${apiHost}/api/boards/${boardId}/export`);
+      if (!res.ok) throw new Error('Falha ao baixar exportação');
+      const text = await res.text();
+      const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const cleanTitle = (snapshot?.board.title || 'retrospectiva')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9_-]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+      link.download = `${cleanTitle || 'retro'}-${boardId.substring(0, 8)}.md`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (err) {
+      console.error('Erro ao exportar markdown:', err);
+      // Fallback direto
+      window.location.href = `${apiHost}/api/boards/${boardId}/export`;
+    }
   };
 
   // Sanitizar colunas para garantir que nenhuma coluna antiga se chame "Action Items"
@@ -110,7 +149,14 @@ export function App() {
 
   // Se não temos boardId na URL, exibir tela de criação
   if (!boardId) {
-    return <CreateBoardModal onCreate={handleCreateBoard} isCreating={isCreating} />;
+    return (
+      <CreateBoardModal
+        onCreate={handleCreateBoard}
+        isCreating={isCreating}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
   }
 
   // Carregamento inicial do WebSocket
@@ -149,6 +195,8 @@ export function App() {
         timerEndsAt={board.timer_ends_at}
         maxVotesPerUser={board.max_votes_per_user}
         userVotedCount={user_voted_card_ids.length}
+        theme={theme}
+        onToggleTheme={toggleTheme}
         onControlTimer={controlTimer}
         onNextPhase={(nextPhase: BoardPhase) => changePhase(nextPhase)}
         onExport={handleExport}
@@ -184,8 +232,8 @@ export function App() {
         {/* Banner Explicativo da Fase de Grouping */}
         {board.phase === 'GROUPING' && (
           <div style={{
-            background: 'rgba(99, 102, 241, 0.12)',
-            border: '1px solid rgba(99, 102, 241, 0.35)',
+            background: 'var(--color-primary-subtle)',
+            border: '1px solid var(--border-primary)',
             borderRadius: 'var(--radius-md)',
             padding: '0.85rem 1.25rem',
             display: 'flex',
@@ -218,7 +266,7 @@ export function App() {
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: '0 0 12px var(--color-primary-glow)',
+                  boxShadow: 'var(--shadow-sm)',
                 }}
               >
                 Concluir Agrupamento e Ir para Votação →
@@ -244,7 +292,7 @@ export function App() {
               <button
                 onClick={() => setShowBoardReview(!showBoardReview)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--bg-subtle)',
                   border: '1px solid var(--border-subtle)',
                   borderRadius: 'var(--radius-full)',
                   padding: '0.45rem 1.1rem',

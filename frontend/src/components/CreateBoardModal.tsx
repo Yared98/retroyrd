@@ -1,12 +1,19 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, EyeOff, Bot, ArrowRight } from 'lucide-react';
+import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon } from 'lucide-react';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
   isCreating: boolean;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
-export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, isCreating }) => {
+export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
+  onCreate,
+  isCreating,
+  theme = 'dark',
+  onToggleTheme,
+}) => {
   const [title, setTitle] = useState('');
   const [maxVotes, setMaxVotes] = useState(5);
 
@@ -31,14 +38,45 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
       alignItems: 'center',
       justifyContent: 'center',
       padding: '2rem',
-      background: 'radial-gradient(ellipse at top, #1e1b4b 0%, #090d16 60%)',
+      background: 'var(--bg-canvas)',
+      position: 'relative',
+      transition: 'background var(--transition-smooth)',
     }}>
+      {/* Botão de Tema no Topo Direito */}
+      {onToggleTheme && (
+        <button
+          onClick={onToggleTheme}
+          style={{
+            position: 'absolute',
+            top: '1.5rem',
+            right: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            color: 'var(--text-main)',
+            padding: '0.45rem 0.85rem',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-sm)',
+            transition: 'all var(--transition-fast)',
+          }}
+          title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+        >
+          {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="var(--color-primary)" />}
+          <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
+        </button>
+      )}
+
       <div className="glass-modal" style={{ maxWidth: 540, width: '100%', padding: '2.5rem' }}>
         {/* Logo / Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
           <div style={{
-            background: 'rgba(99, 102, 241, 0.2)',
-            border: '1px solid rgba(99, 102, 241, 0.4)',
+            background: 'var(--color-primary-subtle)',
+            border: '1px solid var(--border-primary)',
             padding: '0.5rem',
             borderRadius: 'var(--radius-md)',
             display: 'flex',
@@ -56,7 +94,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
         </div>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-          Retrospectivas ágeis corporativas em tempo real. Auto-hospedado (Zero Cost), anonimato criptográfico e integração bidirecional com IA via MCP.
+          Retrospectivas ágeis corporativas em tempo real. Auto-hospedado (Zero Cost), anonimato criptográfico e integração nativa com IA via MCP.
         </p>
 
         {/* Features em destaque */}
@@ -90,13 +128,14 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
               placeholder="Ex: Sprint 42 Retrospective"
               style={{
                 width: '100%',
-                background: 'rgba(0, 0, 0, 0.5)',
+                background: 'var(--bg-input)',
                 border: '1px solid var(--border-highlight)',
                 borderRadius: 'var(--radius-md)',
                 padding: '0.75rem 1rem',
                 color: 'var(--text-main)',
                 fontSize: '0.95rem',
                 outline: 'none',
+                transition: 'border-color var(--transition-fast)',
               }}
             />
           </div>
@@ -120,7 +159,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
                     type="button"
                     onClick={() => setMaxVotes(opt.value)}
                     style={{
-                      background: isSelected ? 'var(--color-primary)' : 'rgba(255, 255, 255, 0.04)',
+                      background: isSelected ? 'var(--color-primary)' : 'var(--bg-subtle)',
                       border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
                       color: isSelected ? '#ffffff' : 'var(--text-muted)',
                       borderRadius: 'var(--radius-sm)',
@@ -128,8 +167,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
                       fontSize: '0.75rem',
                       fontWeight: isSelected ? 700 : 500,
                       cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                      boxShadow: isSelected ? '0 0 10px var(--color-primary-glow)' : 'none',
+                      transition: 'all var(--transition-fast)',
                     }}
                   >
                     {opt.label}
@@ -155,8 +193,9 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({ onCreate, is
               fontSize: '0.95rem',
               fontWeight: 700,
               cursor: isCreating || !title.trim() ? 'not-allowed' : 'pointer',
-              boxShadow: '0 0 20px var(--color-primary-glow)',
-              transition: 'all 0.15s ease',
+              opacity: isCreating || !title.trim() ? 0.6 : 1,
+              boxShadow: 'var(--shadow-sm)',
+              transition: 'all var(--transition-fast)',
               marginTop: '0.5rem',
             }}
           >

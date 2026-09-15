@@ -4,7 +4,7 @@ import {
   ThumbsUp, 
   Lock, 
   Trash2, 
-  Edit2, 
+  Pencil,
   Bot, 
   Check, 
   X, 
@@ -59,7 +59,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   if (isBlindMode) {
     return (
       <div style={{
-        background: 'rgba(255, 255, 255, 0.02)',
+        background: 'var(--bg-subtle)',
         border: '1px dashed var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         padding: '1rem',
@@ -76,7 +76,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           </div>
           <span style={{
             fontSize: '0.7rem',
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'var(--bg-subtle-hover)',
             padding: '0.15rem 0.4rem',
             borderRadius: 'var(--radius-sm)',
             color: 'var(--text-dim)',
@@ -89,7 +89,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           fontFamily: 'var(--font-mono)',
           fontSize: '1.1rem',
           letterSpacing: '0.2em',
-          color: 'rgba(255, 255, 255, 0.25)',
+          color: 'var(--text-dim)',
           padding: '0.5rem 0',
           userSelect: 'none',
         }}>
@@ -142,12 +142,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       style={{
-        background: isDragOver ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-card)',
-        backdropFilter: 'blur(12px)',
+        background: isDragOver ? 'var(--color-primary-subtle)' : 'var(--bg-card)',
         border: isDragOver
           ? '2px dashed var(--color-primary)'
           : childCards.length > 0
-          ? '1px solid rgba(99, 102, 241, 0.4)'
+          ? '1px solid var(--border-primary)'
           : '1px solid var(--border-subtle)',
         borderRadius: 'var(--radius-md)',
         padding: '1rem',
@@ -155,10 +154,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         flexDirection: 'column',
         gap: '0.75rem',
         position: 'relative',
-        transition: 'all 0.15s ease',
-        boxShadow: isDragOver
-          ? '0 0 20px var(--color-primary-glow)'
-          : '0 2px 10px rgba(0, 0, 0, 0.3)',
+        transition: 'all var(--transition-fast)',
+        boxShadow: isDragOver ? 'var(--shadow-md)' : 'var(--shadow-sm)',
         cursor: isGrouping ? 'grab' : 'default',
       }}
     >
@@ -167,13 +164,13 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         <div style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(99, 102, 241, 0.25)',
+          background: 'var(--color-primary-subtle)',
           backdropFilter: 'blur(4px)',
           borderRadius: 'var(--radius-md)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#ffffff',
+          color: 'var(--color-primary)',
           fontWeight: 700,
           fontSize: '0.85rem',
           zIndex: 10,
@@ -197,11 +194,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '0.35rem',
-              background: 'rgba(99, 102, 241, 0.2)',
-              border: '1px solid rgba(99, 102, 241, 0.5)',
+              background: 'var(--cluster-bg)',
+              border: '1px solid var(--cluster-border)',
               padding: '0.2rem 0.55rem',
               borderRadius: 'var(--radius-full)',
-              color: '#c0c1ff',
+              color: 'var(--color-primary)',
               fontSize: '0.72rem',
               fontWeight: 800,
             }}>
@@ -215,11 +212,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '0.35rem',
-              background: 'rgba(139, 92, 246, 0.15)',
-              border: '1px solid rgba(139, 92, 246, 0.35)',
+              background: 'var(--color-action-bg)',
+              border: '1px solid var(--color-action-border)',
               padding: '0.2rem 0.5rem',
               borderRadius: 'var(--radius-full)',
-              color: '#c4b5fd',
+              color: 'var(--color-action)',
               fontSize: '0.7rem',
               fontWeight: 700,
             }}>
@@ -231,10 +228,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '0.35rem',
-              background: 'rgba(16, 185, 129, 0.12)',
+              background: 'var(--color-went-well-bg)',
+              border: '1px solid var(--color-went-well-border)',
               padding: '0.2rem 0.5rem',
               borderRadius: 'var(--radius-full)',
-              color: '#6ee7b7',
+              color: 'var(--color-went-well)',
               fontSize: '0.7rem',
               fontWeight: 600,
             }}>
@@ -248,32 +246,36 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           )}
         </div>
 
-        {/* Ações de Edição/Exclusão (Brainstorm & Autor) */}
-        {phase === 'BRAINSTORM' && canEdit && !isEditing && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+        {/* Ações do Card (Apenas Autor em Fases Editáveis) */}
+        {canEdit && (phase === 'BRAINSTORM' || phase === 'GROUPING') && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <button
-              onClick={() => setIsEditing(true)}
+              onClick={() => setIsEditing(!isEditing)}
               style={{
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--text-dim)',
                 cursor: 'pointer',
                 padding: '0.2rem',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
               }}
-              title="Editar"
+              title="Editar Card"
             >
-              <Edit2 size={13} />
+              <Pencil size={13} />
             </button>
             <button
               onClick={() => onDelete(card.id)}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: 'var(--color-to-improve)',
+                color: 'var(--text-dim)',
                 cursor: 'pointer',
                 padding: '0.2rem',
+                borderRadius: 'var(--radius-sm)',
+                display: 'flex',
               }}
-              title="Excluir"
+              title="Excluir Card"
             >
               <Trash2 size={13} />
             </button>
@@ -281,16 +283,17 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         )}
       </div>
 
-      {/* Conteúdo Principal do Card */}
+      {/* Conteúdo do Card */}
       {isEditing ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
           <textarea
+            autoFocus
             value={editContent}
             onChange={(e) => setEditContent(e.target.value)}
             style={{
               width: '100%',
-              background: 'rgba(0, 0, 0, 0.4)',
-              border: '1px solid var(--color-primary)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-primary)',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--text-main)',
               padding: '0.5rem',
@@ -298,14 +301,15 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               resize: 'vertical',
               minHeight: 60,
               fontFamily: 'inherit',
+              outline: 'none',
             }}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
             <button
               onClick={() => setIsEditing(false)}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: 'none',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
                 color: 'var(--text-muted)',
                 padding: '0.3rem 0.6rem',
                 borderRadius: 'var(--radius-sm)',
@@ -351,14 +355,15 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           flexDirection: 'column',
           gap: '0.45rem',
           paddingLeft: '0.5rem',
-          borderLeft: '2px solid rgba(99, 102, 241, 0.4)',
+          borderLeft: '2px solid var(--color-primary)',
           marginTop: '0.25rem',
         }}>
           {childCards.map((child) => (
             <div
               key={child.id}
               style={{
-                background: 'rgba(0, 0, 0, 0.3)',
+                background: 'var(--cluster-bg)',
+                border: '1px solid var(--cluster-border)',
                 padding: '0.5rem 0.75rem',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: '0.8rem',
@@ -419,16 +424,16 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              background: hasVoted ? 'rgba(99, 102, 241, 0.25)' : 'rgba(255, 255, 255, 0.05)',
+              background: hasVoted ? 'var(--color-primary-subtle)' : 'var(--bg-subtle)',
               border: `1px solid ${hasVoted ? 'var(--color-primary)' : 'var(--border-subtle)'}`,
-              color: hasVoted ? '#a5b4fc' : !hasVoted && isVoteLimitReached ? 'var(--text-dim)' : 'var(--text-muted)',
+              color: hasVoted ? 'var(--color-primary)' : !hasVoted && isVoteLimitReached ? 'var(--text-dim)' : 'var(--text-muted)',
               opacity: !hasVoted && isVoteLimitReached ? 0.45 : 1,
               padding: '0.25rem 0.65rem',
               borderRadius: 'var(--radius-full)',
               fontSize: '0.75rem',
               fontWeight: 700,
               cursor: phase === 'VOTING' && (hasVoted || !isVoteLimitReached) ? 'pointer' : 'not-allowed',
-              transition: 'all 0.15s ease',
+              transition: 'all var(--transition-fast)',
             }}
           >
             <ThumbsUp size={12} />

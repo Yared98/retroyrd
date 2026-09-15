@@ -1,37 +1,138 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Palette Agile Cadence */
-  --bg-canvas: #090d16;
-  --bg-surface: #0f131c;
-  --bg-surface-elevated: #181b25;
-  --bg-card: rgba(30, 41, 59, 0.65);
-  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ==========================================================================
+   TEMA ESCURO (Padrão e data-theme="dark")
+   Focado em profundidade Slate/Zinc elegante, sem saturação ou neon clichê
+   ========================================================================== */
+:root,
+[data-theme="dark"] {
+  --bg-canvas: #0b0f17;
+  --bg-surface: #131823;
+  --bg-surface-elevated: #1a2230;
+  --bg-card: #151c28;
+  --bg-card-hover: #1c2536;
+  --bg-subtle: rgba(255, 255, 255, 0.04);
+  --bg-subtle-hover: rgba(255, 255, 255, 0.08);
+  --bg-input: #0e131d;
+  --bg-header: rgba(11, 15, 23, 0.88);
 
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.18);
+  --border-highlight: rgba(255, 255, 255, 0.15);
   --border-primary: rgba(99, 102, 241, 0.4);
 
   --color-primary: #6366f1;
-  --color-primary-glow: rgba(99, 102, 241, 0.35);
-  --color-went-well: #10b981;
-  --color-went-well-glow: rgba(16, 185, 129, 0.2);
-  --color-to-improve: #f43f5e;
-  --color-to-improve-glow: rgba(244, 63, 94, 0.2);
-  --color-action: #8b5cf6;
-  --color-action-glow: rgba(139, 92, 246, 0.25);
+  --color-primary-hover: #4f46e5;
+  --color-primary-subtle: rgba(99, 102, 241, 0.12);
+  --color-primary-glow: rgba(99, 102, 241, 0.25);
 
-  --text-main: #f8fafc;
+  --color-went-well: #10b981;
+  --color-went-well-bg: rgba(16, 185, 129, 0.08);
+  --color-went-well-border: rgba(16, 185, 129, 0.25);
+  --color-went-well-glow: rgba(16, 185, 129, 0.2);
+
+  --color-to-improve: #f43f5e;
+  --color-to-improve-bg: rgba(244, 63, 94, 0.08);
+  --color-to-improve-border: rgba(244, 63, 94, 0.25);
+  --color-to-improve-glow: rgba(244, 63, 94, 0.2);
+
+  --color-action: #8b5cf6;
+  --color-action-bg: rgba(139, 92, 246, 0.08);
+  --color-action-border: rgba(139, 92, 246, 0.25);
+  --color-action-glow: rgba(139, 92, 246, 0.2);
+
+  --color-facilitator: #fbbf24;
+  --color-facilitator-bg: rgba(251, 191, 36, 0.12);
+
+  --text-main: #f1f5f9;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 1rem;
-  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 30px -4px rgba(0, 0, 0, 0.65);
+  --shadow-elevated: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+
+  --cluster-bg: rgba(99, 102, 241, 0.07);
+  --cluster-border: rgba(99, 102, 241, 0.25);
+
+  --scrollbar-track: #0b0f17;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.15);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
+}
+
+/* ==========================================================================
+   TEMA CLARO (data-theme="light")
+   Inspirado no estilo Linear / Raycast / Miro: superfícies brancas com
+   bordas de alta definição e sombras táteis suaves
+   ========================================================================== */
+[data-theme="light"] {
+  --bg-canvas: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-subtle: #f1f5f9;
+  --bg-subtle-hover: #e2e8f0;
+  --bg-input: #ffffff;
+  --bg-header: rgba(255, 255, 255, 0.92);
+
+  --border-subtle: #e2e8f0;
+  --border-highlight: #cbd5e1;
+  --border-primary: #818cf8;
+
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-subtle: #eef2ff;
+  --color-primary-glow: rgba(79, 70, 229, 0.12);
+
+  --color-went-well: #059669;
+  --color-went-well-bg: #ecfdf5;
+  --color-went-well-border: #a7f3d0;
+  --color-went-well-glow: rgba(5, 150, 105, 0.1);
+
+  --color-to-improve: #e11d48;
+  --color-to-improve-bg: #fff1f2;
+  --color-to-improve-border: #fecdd3;
+  --color-to-improve-glow: rgba(225, 29, 72, 0.1);
+
+  --color-action: #7c3aed;
+  --color-action-bg: #f5f3ff;
+  --color-action-border: #ddd6fe;
+  --color-action-glow: rgba(124, 58, 237, 0.1);
+
+  --color-facilitator: #d97706;
+  --color-facilitator-bg: #fef3c7;
+
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-dim: #94a3b8;
+
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 24px -3px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 20px 35px -5px rgba(0, 0, 0, 0.1), 0 8px 16px -6px rgba(0, 0, 0, 0.05);
+
+  --cluster-bg: #eef2ff;
+  --cluster-border: #c7d2fe;
+
+  --scrollbar-track: #f8fafc;
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-thumb-hover: #94a3b8;
 }
 
 * {
@@ -47,69 +148,71 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--transition-smooth), color var(--transition-smooth);
 }
 
-/* Glassmorphism utility */
+/* Painéis e Modais com acabamento premium e sem glow de IA */
 .glass-panel {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .glass-modal {
-  background: rgba(15, 19, 28, 0.88);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--bg-surface-elevated);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-highlight);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-elevated);
 }
 
-/* Pulse badge */
+/* Pulse badge com indicador limpo */
 .pulse-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background-color: var(--color-went-well);
-  box-shadow: 0 0 10px var(--color-went-well);
-  animation: pulse-glow 2s infinite;
+  box-shadow: 0 0 0 2px var(--color-went-well-bg);
+  animation: pulse-clean 2s infinite ease-in-out;
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-clean {
   0% { transform: scale(0.95); opacity: 0.8; }
   50% { transform: scale(1.15); opacity: 1; }
   100% { transform: scale(0.95); opacity: 0.8; }
 }
 
-/* Scrollbar */
+/* Scrollbars responsivas ao tema */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.4);
+  background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--scrollbar-thumb-hover);
 }
 
-/* Responsive Retro Header */
+/* Header Responsivo e Sólido */
 .retro-header {
-  background: rgba(15, 19, 28, 0.92);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: var(--bg-header);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border-subtle);
   padding: 0.75rem 1.25rem;
   position: sticky;
   top: 0;
   z-index: 50;
+  transition: background-color var(--transition-smooth), border-color var(--transition-smooth);
 }
 
 .retro-header-grid {

@@ -71,13 +71,13 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
       bottom: 0,
       width: '100%',
       maxWidth: 460,
-      background: 'rgba(15, 19, 28, 0.95)',
+      background: 'var(--bg-surface-elevated)',
       backdropFilter: 'blur(24px)',
       borderLeft: '1px solid var(--border-highlight)',
       zIndex: 60,
       display: 'flex',
       flexDirection: 'column',
-      boxShadow: '-10px 0 40px rgba(0, 0, 0, 0.8)',
+      boxShadow: 'var(--shadow-elevated)',
     }}>
       {/* Header */}
       <div style={{
@@ -89,13 +89,13 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <div style={{
-            background: 'rgba(139, 92, 246, 0.2)',
-            border: '1px solid rgba(139, 92, 246, 0.4)',
+            background: 'var(--color-action-bg)',
+            border: '1px solid var(--color-action-border)',
             padding: '0.4rem',
             borderRadius: 'var(--radius-sm)',
             display: 'flex',
           }}>
-            <Bot size={20} color="#c4b5fd" />
+            <Bot size={20} color="var(--color-action)" />
           </div>
           <div>
             <h3 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-main)' }}>
@@ -119,7 +119,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
       <div style={{ padding: '1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         {/* Métricas do Board expostas para o LLM */}
         <div style={{
-          background: 'rgba(0, 0, 0, 0.4)',
+          background: 'var(--bg-subtle)',
           border: '1px solid var(--border-subtle)',
           borderRadius: 'var(--radius-md)',
           padding: '1rem',
@@ -178,13 +178,14 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
               placeholder="Ex: Adicionar retry exponencial no worker"
               style={{
                 flex: 1,
-                background: 'rgba(0, 0, 0, 0.4)',
-                border: '1px solid rgba(139, 92, 246, 0.4)',
+                background: 'var(--bg-input)',
+                border: '1px solid var(--border-highlight)',
                 borderRadius: 'var(--radius-sm)',
                 padding: '0.5rem 0.75rem',
                 color: 'var(--text-main)',
                 fontSize: '0.8rem',
                 outline: 'none',
+                transition: 'border-color var(--transition-fast)',
               }}
               onKeyDown={(e) => e.key === 'Enter' && handleInjectAiAction()}
             />
@@ -203,6 +204,8 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 gap: '0.3rem',
                 fontSize: '0.8rem',
                 fontWeight: 600,
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all var(--transition-fast)',
               }}
             >
               <Send size={13} />
@@ -216,14 +219,14 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
             Logs de Telemetria do Servidor MCP
           </div>
           <div style={{
-            background: 'rgba(0, 0, 0, 0.6)',
+            background: 'var(--bg-input)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             padding: '0.75rem',
             fontFamily: 'var(--font-mono)',
             fontSize: '0.72rem',
             lineHeight: '1.6',
-            color: '#a5b4fc',
+            color: 'var(--color-primary)',
             maxHeight: 220,
             overflowY: 'auto',
           }}>

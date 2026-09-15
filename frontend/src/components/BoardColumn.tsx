@@ -59,14 +59,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
       maxWidth: 480,
       display: 'flex',
       flexDirection: 'column',
-      background: 'rgba(15, 23, 42, 0.4)',
-      border: isGrouping ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid var(--border-subtle)',
+      background: 'var(--bg-surface)',
+      border: isGrouping ? '1px solid var(--border-primary)' : '1px solid var(--border-subtle)',
       borderRadius: 'var(--radius-lg)',
       padding: '1.25rem',
       gap: '1rem',
       height: 'fit-content',
       maxHeight: 'calc(100vh - 120px)',
-      boxShadow: isGrouping ? '0 0 20px rgba(99, 102, 241, 0.08)' : 'none',
+      boxShadow: 'var(--shadow-sm)',
       transition: 'all 0.2s ease',
     }}>
       {/* Cabeçalho da Coluna */}
@@ -77,7 +77,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             height: 10,
             borderRadius: '50%',
             background: column.color || 'var(--color-primary)',
-            boxShadow: `0 0 10px ${column.color || 'var(--color-primary)'}`,
+            boxShadow: '0 0 0 2px var(--bg-subtle)',
           }} />
           <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '-0.01em' }}>
             {column.title}
@@ -85,7 +85,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           <span style={{
             fontSize: '0.75rem',
             fontWeight: 700,
-            background: 'rgba(255, 255, 255, 0.06)',
+            background: 'var(--bg-subtle)',
             padding: '0.15rem 0.5rem',
             borderRadius: 'var(--radius-full)',
             color: 'var(--text-dim)',
@@ -99,13 +99,14 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           <button
             onClick={() => setIsAdding(!isAdding)}
             style={{
-              background: 'rgba(255, 255, 255, 0.06)',
+              background: 'var(--bg-subtle)',
               border: '1px solid var(--border-subtle)',
               color: 'var(--text-muted)',
               borderRadius: 'var(--radius-sm)',
               padding: '0.3rem',
               cursor: 'pointer',
               display: 'flex',
+              transition: 'all var(--transition-fast)',
             }}
             title="Adicionar Card"
           >
@@ -140,8 +141,8 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             placeholder="Escreva sua ideia, bloqueio ou elogio..."
             style={{
               width: '100%',
-              background: 'rgba(15, 19, 28, 0.9)',
-              border: '1px solid var(--color-primary)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-primary)',
               borderRadius: 'var(--radius-sm)',
               color: 'var(--text-main)',
               padding: '0.6rem',
@@ -205,7 +206,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             padding: '2rem 1rem',
             color: 'var(--text-dim)',
             fontSize: '0.8rem',
-            border: '1px dashed rgba(255, 255, 255, 0.05)',
+            border: '1px dashed var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
           }}>
             Nenhum card ainda nesta coluna.

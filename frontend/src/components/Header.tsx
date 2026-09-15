@@ -19,7 +19,9 @@ import {
   Volume2,
   VolumeX,
   Plus,
-  Bell
+  Bell,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 
@@ -32,6 +34,8 @@ interface HeaderProps {
   timerEndsAt?: number | null;
   maxVotesPerUser?: number;
   userVotedCount?: number;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
   onControlTimer?: (action: 'START' | 'PAUSE' | 'ADD_SECONDS' | 'RESET', seconds?: number) => void;
   onNextPhase: (next: BoardPhase) => void;
   onExport: () => void;
@@ -56,6 +60,8 @@ export const Header: React.FC<HeaderProps> = ({
   timerEndsAt,
   maxVotesPerUser = 5,
   userVotedCount = 0,
+  theme = 'dark',
+  onToggleTheme,
   onControlTimer,
   onNextPhase,
   onExport,
@@ -198,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '0.3rem',
-            background: 'rgba(255, 255, 255, 0.03)',
+            background: 'var(--bg-subtle)',
             border: '1px solid var(--border-subtle)',
             padding: '0.25rem 0.35rem',
             borderRadius: 'var(--radius-full)',
@@ -222,7 +228,7 @@ export const Header: React.FC<HeaderProps> = ({
                     fontWeight: isCurrent ? 700 : 500,
                     color: isCurrent ? '#ffffff' : isDone ? 'var(--color-went-well)' : 'var(--text-dim)',
                     background: isCurrent ? 'var(--color-primary)' : 'transparent',
-                    boxShadow: isCurrent ? '0 0 12px var(--color-primary-glow)' : 'none',
+                    boxShadow: isCurrent ? 'var(--shadow-sm)' : 'none',
                     whiteSpace: 'nowrap',
                     transition: 'all 0.2s',
                     cursor: 'default',
@@ -250,11 +256,11 @@ export const Header: React.FC<HeaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? 'rgba(239, 68, 68, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                border: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? '1px solid rgba(239, 68, 68, 0.35)' : '1px solid rgba(99, 102, 241, 0.35)',
+                background: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? 'var(--color-to-improve-bg)' : 'var(--color-primary-subtle)',
+                border: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? '1px solid var(--color-to-improve-border)' : '1px solid var(--border-primary)',
                 padding: '0.35rem 0.75rem',
                 borderRadius: 'var(--radius-full)',
-                color: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? '#fca5a5' : '#c7d2fe',
+                color: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? 'var(--color-to-improve)' : 'var(--color-primary)',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 whiteSpace: 'nowrap',
@@ -263,9 +269,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>
                   {maxVotesPerUser === 0 
                     ? `${userVotedCount} votos (Ilimitado)` 
-                    : userVotedCount >= maxVotesPerUser
-                      ? `Votos: ${userVotedCount}/${maxVotesPerUser}`
-                      : `Votos: ${userVotedCount}/${maxVotesPerUser}`}
+                    : `Votos: ${userVotedCount}/${maxVotesPerUser}`}
                 </span>
               </div>
             )}
@@ -286,14 +290,14 @@ export const Header: React.FC<HeaderProps> = ({
                   alignItems: 'center',
                   gap: '0.45rem',
                   background: isTimerFinished 
-                    ? 'rgba(239, 68, 68, 0.2)' 
+                    ? 'var(--color-to-improve-bg)' 
                     : timerIsRunning 
-                      ? 'rgba(99, 102, 241, 0.15)' 
-                      : 'rgba(255, 255, 255, 0.05)',
+                      ? 'var(--color-primary-subtle)' 
+                      : 'var(--bg-subtle)',
                   border: isTimerFinished 
                     ? '1px solid var(--color-to-improve)' 
                     : timerIsRunning 
-                      ? '1px solid rgba(99, 102, 241, 0.4)' 
+                      ? '1px solid var(--border-primary)' 
                       : '1px solid var(--border-subtle)',
                   padding: '0.38rem 0.75rem',
                   borderRadius: 'var(--radius-full)',
@@ -303,11 +307,7 @@ export const Header: React.FC<HeaderProps> = ({
                   fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: isTimerFinished 
-                    ? '0 0 14px rgba(244, 63, 94, 0.4)' 
-                    : timerIsRunning 
-                      ? '0 0 12px var(--color-primary-glow)' 
-                      : 'none',
+                  boxShadow: 'var(--shadow-sm)',
                   whiteSpace: 'nowrap',
                 }}
                 title={isFacilitator ? "Controles do Timer (Clique para configurar)" : "Clique para ligar/desligar som do alarme"}
@@ -325,11 +325,11 @@ export const Header: React.FC<HeaderProps> = ({
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   ...(popoverAlign === 'right' ? { right: 0 } : { left: 0 }),
-                  background: '#0f172a',
+                  background: 'var(--bg-surface-elevated)',
                   border: '1px solid var(--border-highlight)',
                   borderRadius: 'var(--radius-md)',
                   padding: '0.85rem',
-                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.6)',
+                  boxShadow: 'var(--shadow-lg)',
                   zIndex: 100,
                   width: 260,
                   maxWidth: 'min(280px, calc(100vw - 2rem))',
@@ -376,7 +376,7 @@ export const Header: React.FC<HeaderProps> = ({
                           setShowTimerMenu(false);
                         }}
                         style={{
-                          background: 'rgba(255, 255, 255, 0.05)',
+                          background: 'var(--bg-subtle)',
                           border: '1px solid var(--border-subtle)',
                           borderRadius: 'var(--radius-sm)',
                           padding: '0.35rem 0',
@@ -384,6 +384,7 @@ export const Header: React.FC<HeaderProps> = ({
                           fontSize: '0.75rem',
                           fontWeight: 600,
                           cursor: 'pointer',
+                          transition: 'all var(--transition-fast)',
                         }}
                       >
                         {p.label}
@@ -407,14 +408,15 @@ export const Header: React.FC<HeaderProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.4rem',
-                        background: timerIsRunning ? 'rgba(239, 68, 68, 0.2)' : 'var(--color-primary)',
-                        border: timerIsRunning ? '1px solid rgba(239, 68, 68, 0.4)' : 'none',
-                        color: '#ffffff',
+                        background: timerIsRunning ? 'var(--color-to-improve-bg)' : 'var(--color-primary)',
+                        border: timerIsRunning ? '1px solid var(--color-to-improve)' : 'none',
+                        color: timerIsRunning ? 'var(--color-to-improve)' : '#ffffff',
                         padding: '0.45rem',
                         borderRadius: 'var(--radius-sm)',
                         fontSize: '0.8rem',
                         fontWeight: 700,
                         cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
                       }}
                     >
                       {timerIsRunning ? <Pause size={14} /> : <Play size={14} />}
@@ -427,7 +429,7 @@ export const Header: React.FC<HeaderProps> = ({
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.25rem',
-                        background: 'rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-subtle)',
                         border: '1px solid var(--border-subtle)',
                         color: 'var(--text-main)',
                         padding: '0.45rem 0.65rem',
@@ -435,6 +437,7 @@ export const Header: React.FC<HeaderProps> = ({
                         fontSize: '0.78rem',
                         fontWeight: 600,
                         cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
                       }}
                       title="Adicionar 1 minuto"
                     >
@@ -445,7 +448,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <button
                       onClick={() => onControlTimer?.('RESET', 300)}
                       style={{
-                        background: 'rgba(255, 255, 255, 0.08)',
+                        background: 'var(--bg-subtle)',
                         border: '1px solid var(--border-subtle)',
                         color: 'var(--text-main)',
                         padding: '0.45rem 0.65rem',
@@ -453,6 +456,7 @@ export const Header: React.FC<HeaderProps> = ({
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
+                        transition: 'all var(--transition-fast)',
                       }}
                       title="Resetar para 5 minutos"
                     >
@@ -500,8 +504,9 @@ export const Header: React.FC<HeaderProps> = ({
                   fontSize: '0.8rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  boxShadow: '0 0 14px var(--color-primary-glow)',
+                  boxShadow: 'var(--shadow-sm)',
                   whiteSpace: 'nowrap',
+                  transition: 'all var(--transition-fast)',
                 }}
               >
                 <span>Avançar: {nextPhaseObj.label.split('. ')[1]}</span>
@@ -510,7 +515,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Ferramentas Auxiliares: Convidar, Exportar, MCP */}
+          {/* Ferramentas Auxiliares: Convidar, Exportar, Alternar Tema, MCP */}
           <div className="header-tools">
             {/* Botão Compartilhar */}
             <button
@@ -519,7 +524,7 @@ export const Header: React.FC<HeaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-subtle)',
                 color: 'var(--text-main)',
                 padding: '0.42rem 0.8rem',
@@ -527,7 +532,7 @@ export const Header: React.FC<HeaderProps> = ({
                 fontSize: '0.8rem',
                 fontWeight: 600,
                 cursor: 'pointer',
-                transition: 'all 0.15s',
+                transition: 'all var(--transition-fast)',
               }}
               title="Copiar link de convite"
             >
@@ -542,7 +547,7 @@ export const Header: React.FC<HeaderProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                background: 'rgba(255, 255, 255, 0.06)',
+                background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-subtle)',
                 color: 'var(--text-main)',
                 padding: '0.42rem 0.7rem',
@@ -550,12 +555,38 @@ export const Header: React.FC<HeaderProps> = ({
                 fontSize: '0.8rem',
                 fontWeight: 600,
                 cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
               }}
               title="Exportar Retrospectiva"
             >
               <Download size={14} />
               <span className="header-btn-text">Exportar</span>
             </button>
+
+            {/* Alternador de Modo Claro / Escuro */}
+            {onToggleTheme && (
+              <button
+                onClick={onToggleTheme}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-main)',
+                  padding: '0.42rem 0.75rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
+                }}
+                title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+              >
+                {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="var(--color-primary)" />}
+                <span className="header-btn-text">{theme === 'dark' ? 'Claro' : 'Escuro'}</span>
+              </button>
+            )}
 
             {/* Botão de Telemetria MCP */}
             {onToggleTelemetry && (
@@ -565,14 +596,15 @@ export const Header: React.FC<HeaderProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  background: 'rgba(139, 92, 246, 0.15)',
-                  border: '1px solid rgba(139, 92, 246, 0.35)',
-                  color: '#c4b5fd',
+                  background: 'var(--color-action-bg)',
+                  border: '1px solid var(--color-action-border)',
+                  color: 'var(--color-action)',
                   padding: '0.42rem 0.7rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   cursor: 'pointer',
+                  transition: 'all var(--transition-fast)',
                 }}
                 title="Telemetria e Injeção de IA via MCP"
               >

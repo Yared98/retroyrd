@@ -85,7 +85,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 0 16px var(--color-action-glow)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <Sparkles size={20} />
           </div>
@@ -104,7 +104,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
 
         {items.length > 0 && (
           <div style={{
-            background: 'rgba(0, 0, 0, 0.3)',
+            background: 'var(--bg-subtle)',
             border: '1px solid var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
             padding: '0.5rem 1rem',
@@ -140,7 +140,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 Tópicos Priorizados (Mais Votados)
               </h3>
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
               {prioritizedCards.length} tópicos
             </span>
           </div>
@@ -178,13 +178,14 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                   <div
                     key={card.id}
                     style={{
-                      background: 'rgba(15, 23, 42, 0.6)',
+                      background: 'var(--bg-card)',
                       border: '1px solid var(--border-subtle)',
                       borderRadius: 'var(--radius-md)',
                       padding: '0.85rem 1rem',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '0.5rem',
+                      boxShadow: 'var(--shadow-sm)',
                       transition: 'border-color 0.2s ease',
                     }}
                   >
@@ -211,7 +212,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                         fontSize: '0.75rem',
                         fontWeight: 700,
                         color: card.vote_count > 0 ? 'var(--color-primary)' : 'var(--text-dim)',
-                        background: card.vote_count > 0 ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.04)',
+                        background: card.vote_count > 0 ? 'var(--color-primary-subtle)' : 'var(--bg-subtle)',
                         padding: '0.15rem 0.55rem',
                         borderRadius: 'var(--radius-full)',
                       }}>
@@ -319,13 +320,14 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 onChange={(e) => setDesc(e.target.value)}
                 placeholder="Qual é a ação clara a ser tomada?"
                 style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
+                  background: 'var(--bg-input)',
                   border: '1px solid var(--border-highlight)',
                   borderRadius: 'var(--radius-sm)',
                   padding: '0.6rem 0.8rem',
                   color: 'var(--text-main)',
                   fontSize: '0.9rem',
                   outline: 'none',
+                  transition: 'border-color var(--transition-fast)',
                 }}
               />
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -337,13 +339,14 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                   style={{
                     flex: 1,
                     minWidth: 160,
-                    background: 'rgba(255, 255, 255, 0.04)',
+                    background: 'var(--bg-input)',
                     border: '1px solid var(--border-highlight)',
                     borderRadius: 'var(--radius-sm)',
                     padding: '0.55rem 0.8rem',
                     color: 'var(--text-main)',
                     fontSize: '0.85rem',
                     outline: 'none',
+                    transition: 'border-color var(--transition-fast)',
                   }}
                 />
                 <button
@@ -371,6 +374,8 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                     fontWeight: 700,
                     fontSize: '0.85rem',
                     cursor: 'pointer',
+                    boxShadow: 'var(--shadow-sm)',
+                    transition: 'all var(--transition-fast)',
                   }}
                 >
                   Salvar Ação
@@ -385,7 +390,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
               <div style={{
                 textAlign: 'center',
                 padding: '3rem 1.5rem',
-                background: 'rgba(15, 23, 42, 0.3)',
+                background: 'var(--bg-subtle)',
                 borderRadius: 'var(--radius-lg)',
                 border: '1px dashed var(--border-subtle)',
                 color: 'var(--text-dim)',
@@ -409,8 +414,8 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                   <div
                     key={item.id}
                     style={{
-                      background: isDone ? 'rgba(15, 23, 42, 0.3)' : 'rgba(15, 23, 42, 0.7)',
-                      border: isDone ? '1px solid rgba(255, 255, 255, 0.05)' : '1px solid var(--border-subtle)',
+                      background: isDone ? 'var(--bg-subtle)' : 'var(--bg-card)',
+                      border: '1px solid var(--border-subtle)',
                       borderRadius: 'var(--radius-md)',
                       padding: '0.85rem 1.1rem',
                       display: 'flex',
@@ -419,6 +424,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                       gap: '0.85rem',
                       borderLeft: item.is_ai_generated ? '4px solid var(--color-action)' : '4px solid var(--color-primary)',
                       opacity: isDone ? 0.65 : 1,
+                      boxShadow: 'var(--shadow-sm)',
                       transition: 'all 0.2s ease',
                     }}
                   >
