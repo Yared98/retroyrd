@@ -276,7 +276,6 @@ export function App() {
         onHome={() => {
           window.location.href = '/';
         }}
-        safetySummary={safety_summary}
       />
 
       {/* Banner de Visão Geral do Clima da Equipe (Safety Check) */}
@@ -469,6 +468,18 @@ export function App() {
                 <Star size={13} />
                 <span>Com Votos</span>
               </button>
+
+              {!showSafetyBanner && safety_summary && safety_summary.count > 0 && (
+                <button
+                  type="button"
+                  className="board-filter-chip"
+                  onClick={() => setShowSafetyBanner(true)}
+                  title="Reexibir barra de clima da equipe (Safety Check)"
+                >
+                  <ShieldCheck size={13} color="var(--color-went-well)" />
+                  <span>Ver Clima ({safety_summary.average.toFixed(1)}★)</span>
+                </button>
+              )}
 
               {(searchQuery !== '' || filterType !== 'ALL') && (
                 <button

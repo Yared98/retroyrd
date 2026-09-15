@@ -230,8 +230,8 @@ body {
   gap: 0.75rem;
 }
 
-/* Telas Grandes (>= 1180px): Linha única espaçosa */
-@media (min-width: 1180px) {
+/* Telas Grandes (>= 1320px): Linha única espaçosa */
+@media (min-width: 1320px) {
   .retro-header-grid {
     grid-template-columns: auto auto 1fr;
     grid-template-areas: "brand stepper actions";
@@ -257,8 +257,8 @@ body {
   }
 }
 
-/* Telas Médias e Compactas (< 1180px): 2 Linhas Perfeitamente Organizadas */
-@media (max-width: 1179px) {
+/* Telas Médias e Compactas (< 1320px): 2 Linhas Perfeitamente Organizadas */
+@media (max-width: 1319px) {
   .retro-header-grid {
     grid-template-columns: 1fr auto;
     grid-template-rows: auto auto;
