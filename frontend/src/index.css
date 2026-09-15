@@ -436,3 +436,17 @@ body {
   background: var(--color-primary-subtle) !important;
   box-shadow: 0 0 0 2px var(--color-primary-subtle) !important;
 }
+
+/* Links do Rodapé */
+.hover-link:hover {
+  color: var(--color-primary) !important;
+  border-bottom-color: var(--color-primary) !important;
+}
+
+.footer-badge-link:hover {
+  background: var(--bg-subtle-hover) !important;
+  border-color: var(--border-highlight) !important;
+  color: var(--text-main) !important;
+  transform: translateY(-1px);
+}
+

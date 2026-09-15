@@ -23,9 +23,11 @@ import {
   Bell,
   Sun,
   Moon,
-  Home
+  Home,
+  Globe
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
+import { GithubIcon } from './Footer';
 
 interface HeaderProps {
   title: string;
@@ -675,6 +677,57 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>MCP</span>
               </button>
             )}
+
+            {/* Divisor vertical */}
+            <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 0.15rem' }} />
+
+            {/* Link para Site Pessoal */}
+            <a
+              href="https://yared.com.br/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-muted)',
+                padding: '0.42rem 0.55rem',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                transition: 'all var(--transition-fast)',
+              }}
+              className="footer-badge-link"
+              title="Website: yared.com.br"
+              aria-label="Website pessoal"
+            >
+              <Globe size={14} />
+            </a>
+
+            {/* Link para GitHub do Projeto */}
+            <a
+              href="https://github.com/Yared98/retroyrd"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-muted)',
+                padding: '0.42rem 0.55rem',
+                borderRadius: 'var(--radius-md)',
+                textDecoration: 'none',
+                transition: 'all var(--transition-fast)',
+              }}
+              className="footer-badge-link"
+              title="Código-fonte no GitHub"
+              aria-label="Repositório no GitHub"
+            >
+              <GithubIcon size={14} />
+            </a>
           </div>
         </div>
       </div>

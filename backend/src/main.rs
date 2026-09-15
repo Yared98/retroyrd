@@ -89,7 +89,7 @@ async fn main() {
         .unwrap_or(8080);
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
-    info!("🚀 Internal Retro backend rodando em http://{}", addr);
+    info!("🚀 Retroyrd backend rodando em http://{}", addr);
     info!("🔗 WebSocket disponível em ws://{}/ws/board/{{board_id}}", addr);
     info!("🤖 Servidor MCP disponível em http://{}/mcp", addr);
 

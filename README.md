@@ -1,4 +1,4 @@
-# 🛠️ Internal Retro (MVP)
+# 🛠️ Retroyrd (MVP)
 
 Sistema de retrospectivas ágeis em tempo real, privado e auto-hospedado (**Zero Cost**), projetado para substituir ferramentas pagas como EasyRetro e contornar limitações de contas gratuitas (limite de boards, exportação e recursos bloqueados).
 

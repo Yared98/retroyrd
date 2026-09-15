@@ -6,6 +6,7 @@ import { SafetyCheckModal } from './components/SafetyCheckModal';
 import { ActionItemsView } from './components/ActionItemsView';
 import { McpTelemetryDrawer } from './components/McpTelemetryDrawer';
 import { CreateBoardModal } from './components/CreateBoardModal';
+import { Footer } from './components/Footer';
 import { saveRecentSession } from './utils/recentSessions';
 import { Search, User, Sparkles, Star, X } from 'lucide-react';
 import type { BoardPhase } from './types';
@@ -74,6 +75,15 @@ export function App() {
       sessionStorage.setItem(`facilitator_token_${boardId}`, facilitatorToken);
     }
   }, [boardId, facilitatorToken]);
+
+  // Atualizar title da aba do navegador para Retroyrd
+  useEffect(() => {
+    if (snapshot?.board?.title) {
+      document.title = `${snapshot.board.title} — Retroyrd`;
+    } else {
+      document.title = 'Retroyrd — Retrospectivas Ágeis em Tempo Real';
+    }
+  }, [snapshot?.board?.title]);
 
   // Criação de novo board via HTTP POST /api/boards
   const handleCreateBoard = async (title: string, maxVotesPerUser: number = 5) => {
@@ -503,6 +513,9 @@ export function App() {
           </div>
         )}
       </main>
+
+      {/* Rodapé com créditos e links */}
+      <Footer />
 
       {/* Gaveta de Telemetria MCP */}
       <McpTelemetryDrawer

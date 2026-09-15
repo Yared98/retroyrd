@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
+import { Footer } from './Footer';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
@@ -51,9 +52,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     <div style={{
       minHeight: '100vh',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '2rem',
+      padding: '2rem 1.5rem',
       background: 'var(--bg-canvas)',
       position: 'relative',
       transition: 'background var(--transition-smooth)',
@@ -101,7 +103,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           </div>
           <div>
             <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              INTERNAL RETRO
+              RETROYRD
             </span>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
               Criar Nova Retrospectiva
@@ -328,6 +330,9 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Rodapé com créditos */}
+      <Footer style={{ borderTop: 'none', marginTop: '1.25rem', width: '100%', maxWidth: 540 }} />
 
       {/* Modal de Confirmação de Exclusão de Sessão */}
       {sessionToDelete && (
