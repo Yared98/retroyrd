@@ -74,6 +74,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/health", get(health_check))
+        .route("/robots.txt", get(robots_txt_handler))
         .route("/api/boards", post(create_board_handler))
         .route("/api/boards/{id}", get(get_board_handler))
         .route("/api/boards/{id}/export", get(export_board_handler))
@@ -101,13 +102,28 @@ async fn health_check() -> &'static str {
     "OK"
 }
 
+async fn robots_txt_handler() -> impl IntoResponse {
+    (
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "text/plain; charset=utf-8"),
+            (header::HeaderName::from_static("x-robots-tag"), "noindex, nofollow, noarchive"),
+        ],
+        "# Bloqueio estrito de rastreadores e motores de busca\nUser-agent: *\nDisallow: /\n",
+    )
+}
+
 async fn spa_fallback() -> impl IntoResponse {
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "../frontend/dist".to_string());
     let index_file = PathBuf::from(&static_dir).join("index.html");
     match tokio::fs::read_to_string(index_file).await {
         Ok(html) => (
             StatusCode::OK,
-            [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+            [
+                (header::CONTENT_TYPE, "text/html; charset=utf-8"),
+                (header::HeaderName::from_static("x-robots-tag"), "noindex, nofollow, noarchive"),
+                (header::HeaderName::from_static("referrer-policy"), "no-referrer"),
+            ],
             html,
         ).into_response(),
         Err(_) => (StatusCode::NOT_FOUND, "index.html não encontrado").into_response(),
