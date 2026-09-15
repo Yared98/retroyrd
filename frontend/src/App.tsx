@@ -8,7 +8,8 @@ import { McpTelemetryDrawer } from './components/McpTelemetryDrawer';
 import { CreateBoardModal } from './components/CreateBoardModal';
 import { Footer } from './components/Footer';
 import { saveRecentSession } from './utils/recentSessions';
-import { Search, User, Sparkles, Star, X } from 'lucide-react';
+import { getSafetyAssessment } from './utils/safety';
+import { Search, User, Sparkles, Star, X, ShieldCheck } from 'lucide-react';
 import type { BoardPhase } from './types';
 
 export function App() {
@@ -31,6 +32,7 @@ export function App() {
   const [showMcpDrawer, setShowMcpDrawer] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'MINE' | 'AI' | 'VOTED'>('ALL');
+  const [showSafetyBanner, setShowSafetyBanner] = useState(true);
   const [hasVotedSafety, setHasVotedSafety] = useState(() => {
     return boardId ? sessionStorage.getItem(`safety_voted_${boardId}`) === 'true' : false;
   });
@@ -274,7 +276,102 @@ export function App() {
         onHome={() => {
           window.location.href = '/';
         }}
+        safetySummary={safety_summary}
       />
+
+      {/* Banner de Visão Geral do Clima da Equipe (Safety Check) */}
+      {board.phase !== 'SAFETY_CHECK' && safety_summary && safety_summary.count > 0 && showSafetyBanner && (() => {
+        const assessment = getSafetyAssessment(safety_summary.average);
+        return (
+          <div style={{
+            background: assessment.bg,
+            borderBottom: `1px solid ${assessment.border}`,
+            padding: '0.45rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '1rem',
+            fontSize: '0.8rem',
+            color: 'var(--text-main)',
+            animation: 'fadeIn 0.2s ease',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                color: assessment.color,
+                fontWeight: 800,
+                fontSize: '0.82rem',
+              }}>
+                <ShieldCheck size={15} />
+                <span>Clima da Equipe (Safety Check): {safety_summary.average.toFixed(1)} / 5.0</span>
+              </div>
+              <span style={{ color: 'var(--text-dim)' }}>•</span>
+              <span style={{
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                padding: '0.1rem 0.45rem',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '0.74rem',
+                fontWeight: 600,
+                color: 'var(--text-muted)',
+              }}>
+                {safety_summary.count} {safety_summary.count === 1 ? 'membro avaliou' : 'membros avaliaram'}
+              </span>
+              <span style={{ color: 'var(--text-dim)' }}>•</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
+                {assessment.desc}
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              {/* Mini-pills de distribuição rápida */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                {[1, 2, 3, 4, 5].map((score) => {
+                  const votes = safety_summary.distribution[score - 1] || 0;
+                  return (
+                    <span
+                      key={score}
+                      style={{
+                        fontSize: '0.7rem',
+                        padding: '0.1rem 0.35rem',
+                        borderRadius: 'var(--radius-xs)',
+                        background: votes > 0 ? 'var(--bg-surface)' : 'transparent',
+                        border: votes > 0 ? '1px solid var(--border-subtle)' : 'none',
+                        color: votes > 0 ? 'var(--text-main)' : 'var(--text-dim)',
+                        fontWeight: votes > 0 ? 700 : 400,
+                      }}
+                      title={`${votes} voto(s) com nota ${score}`}
+                    >
+                      {score}★: {votes}
+                    </span>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowSafetyBanner(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-dim)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '0.15rem',
+                  borderRadius: 'var(--radius-sm)',
+                }}
+                title="Ocultar barra de segurança (o indicador continuará na barra superior)"
+                aria-label="Ocultar resumo"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Fase 1: Modal de Safety Check (se a fase atual for SAFETY_CHECK) */}
       {board.phase === 'SAFETY_CHECK' && (

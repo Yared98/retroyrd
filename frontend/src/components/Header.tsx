@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { BoardPhase } from '../types';
+import type { BoardPhase, SafetyCheckSummary } from '../types';
+import { getSafetyAssessment } from '../utils/safety';
 import { 
   CheckCircle2, 
   Share2, 
@@ -46,6 +47,7 @@ interface HeaderProps {
   onExport: () => void;
   onToggleTelemetry?: () => void;
   onHome?: () => void;
+  safetySummary?: SafetyCheckSummary | null;
 }
 
 const PHASES: { key: BoardPhase; label: string; icon: React.ComponentType<{ size: number }> }[] = [
@@ -74,14 +76,17 @@ export const Header: React.FC<HeaderProps> = ({
   onExport,
   onToggleTelemetry,
   onHome,
+  safetySummary,
 }) => {
   const [copied, setCopied] = useState(false);
   const [localSeconds, setLocalSeconds] = useState(timerSecondsRemaining);
   const [soundMuted, setSoundMuted] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
+  const [showSafetyMenu, setShowSafetyMenu] = useState(false);
   const [hasAlertedEnd, setHasAlertedEnd] = useState(false);
   const [popoverAlign, setPopoverAlign] = useState<'left' | 'right'>('right');
   const timerMenuRef = useRef<HTMLDivElement>(null);
+  const safetyMenuRef = useRef<HTMLDivElement>(null);
 
   // Sincronização do som mudo com o utilitário
   useEffect(() => {
@@ -98,11 +103,14 @@ export const Header: React.FC<HeaderProps> = ({
     };
   }, []);
 
-  // Fechar menu ao clicar fora
+  // Fechar menus ao clicar fora
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (timerMenuRef.current && !timerMenuRef.current.contains(e.target as Node)) {
         setShowTimerMenu(false);
+      }
+      if (safetyMenuRef.current && !safetyMenuRef.current.contains(e.target as Node)) {
+        setShowSafetyMenu(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -175,6 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const isTimerFinished = localSeconds === 0;
+  const safetyAssessment = safetySummary?.count ? getSafetyAssessment(safetySummary.average) : null;
 
   return (
     <header className="retro-header">
@@ -182,7 +191,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Lado Esquerdo: Marca, Título & Status */}
         <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <span className="pulse-dot" />
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-went-well)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 LIVE SESSÃO
@@ -201,6 +210,126 @@ export const Header: React.FC<HeaderProps> = ({
                 }}>
                   Facilitador
                 </span>
+              )}
+
+              {/* Indicador Interativo da Nota de Segurança no Topo */}
+              {safetySummary && safetySummary.count > 0 && safetyAssessment && (
+                <div ref={safetyMenuRef} style={{ position: 'relative' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowSafetyMenu(!showSafetyMenu)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      background: safetyAssessment.bg,
+                      color: safetyAssessment.color,
+                      border: `1px solid ${safetyAssessment.border}`,
+                      fontSize: '0.68rem',
+                      fontWeight: 800,
+                      padding: '0.12rem 0.5rem',
+                      borderRadius: 'var(--radius-full)',
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                    title="Segurança Psicológica da Equipe (clique para ver detalhes)"
+                  >
+                    <ShieldCheck size={12} />
+                    <span>Segurança: {safetySummary.average.toFixed(1)} / 5</span>
+                    <span style={{ opacity: 0.8, fontWeight: 600 }}>({safetySummary.count})</span>
+                  </button>
+
+                  {/* Popover de Distribuição e Diagnóstico */}
+                  {showSafetyMenu && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        left: 0,
+                        background: 'var(--bg-surface-elevated)',
+                        border: '1px solid var(--border-highlight)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '1rem',
+                        boxShadow: 'var(--shadow-lg)',
+                        zIndex: 110,
+                        width: 280,
+                        maxWidth: 'min(320px, calc(100vw - 2rem))',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: safetyAssessment.color, fontWeight: 800, fontSize: '0.85rem' }}>
+                          <ShieldCheck size={16} />
+                          <span>Segurança Psicológica</span>
+                        </div>
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          background: safetyAssessment.bg,
+                          color: safetyAssessment.color,
+                          padding: '0.1rem 0.4rem',
+                          borderRadius: 'var(--radius-full)',
+                          border: `1px solid ${safetyAssessment.border}`,
+                        }}>
+                          {safetyAssessment.status}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
+                        <span style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: 1 }}>
+                          {safetySummary.average.toFixed(1)}
+                        </span>
+                        <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>/ 5.0</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginLeft: 'auto' }}>
+                          {safetySummary.count} {safetySummary.count === 1 ? 'voto' : 'votos'}
+                        </span>
+                      </div>
+
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                        {safetyAssessment.desc}
+                      </p>
+
+                      {/* Gráfico de barras da distribuição 5★ a 1★ */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingTop: '0.2rem' }}>
+                        {[5, 4, 3, 2, 1].map((score) => {
+                          const votes = safetySummary.distribution[score - 1] || 0;
+                          const pct = safetySummary.count > 0 ? Math.round((votes / safetySummary.count) * 100) : 0;
+                          return (
+                            <div key={score} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.72rem' }}>
+                              <span style={{ width: 22, color: 'var(--text-muted)', fontWeight: 600 }}>{score}★</span>
+                              <div style={{ flex: 1, height: 6, background: 'var(--bg-subtle)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>
+                                <div style={{
+                                  width: `${pct}%`,
+                                  height: '100%',
+                                  background: score >= 4 ? 'var(--color-went-well)' : score === 3 ? 'var(--color-facilitator)' : 'var(--color-to-improve)',
+                                  borderRadius: 'var(--radius-full)',
+                                  transition: 'width 0.3s ease',
+                                }} />
+                              </div>
+                              <span style={{ width: 45, textAlign: 'right', color: 'var(--text-dim)', fontWeight: 600 }}>
+                                {votes} ({pct}%)
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div style={{
+                        borderTop: '1px solid var(--border-subtle)',
+                        paddingTop: '0.45rem',
+                        fontSize: '0.68rem',
+                        color: 'var(--text-dim)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}>
+                        <span>🔒 Checagem 100% anônima e confidencial.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.15rem' }}>
