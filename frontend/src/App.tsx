@@ -508,6 +508,7 @@ export function App() {
       <McpTelemetryDrawer
         isOpen={showMcpDrawer}
         snapshot={snapshot}
+        facilitatorToken={facilitatorToken}
         onClose={() => setShowMcpDrawer(false)}
       />
     </div>
