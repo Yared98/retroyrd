@@ -173,13 +173,13 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
               {isFacilitator && (
                 <span style={{
-                  background: 'rgba(234, 179, 8, 0.15)',
+                  background: 'var(--color-facilitator-bg)',
                   color: 'var(--color-facilitator)',
                   fontSize: '0.65rem',
                   fontWeight: 800,
                   padding: '0.1rem 0.45rem',
                   borderRadius: 'var(--radius-full)',
-                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  border: '1px solid var(--color-facilitator-border)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
                 }}>

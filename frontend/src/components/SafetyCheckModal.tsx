@@ -71,11 +71,13 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           <span>Abrir Checagem de Segurança</span>
           {isFacilitator && (
             <span style={{
-              background: 'rgba(234, 179, 8, 0.2)',
-              color: '#fef08a',
-              padding: '0.1rem 0.4rem',
+              background: 'var(--color-facilitator-bg)',
+              color: 'var(--color-facilitator)',
+              border: '1px solid var(--color-facilitator-border)',
+              padding: '0.1rem 0.45rem',
               borderRadius: 'var(--radius-sm)',
               fontSize: '0.7rem',
+              fontWeight: 700,
             }}>
               Facilitador
             </span>
@@ -103,17 +105,18 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.4rem',
-            background: 'rgba(234, 179, 8, 0.15)',
-            border: '1px solid rgba(234, 179, 8, 0.4)',
-            color: '#fef08a',
-            padding: '0.25rem 0.65rem',
+            gap: '0.45rem',
+            background: 'var(--color-facilitator-bg)',
+            border: '1px solid var(--color-facilitator-border)',
+            color: 'var(--color-facilitator)',
+            padding: '0.35rem 0.75rem',
             borderRadius: 'var(--radius-full)',
             fontSize: '0.75rem',
             fontWeight: 800,
             marginBottom: '1rem',
+            letterSpacing: '0.02em',
           }}>
-            <Crown size={14} color="#facc15" />
+            <Crown size={14} color="var(--color-facilitator)" />
             <span>VOCÊ É O FACILITADOR DESTA SESSÃO</span>
           </div>
         )}

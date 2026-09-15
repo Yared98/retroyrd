@@ -57,6 +57,7 @@
 
   --color-facilitator: #fbbf24;
   --color-facilitator-bg: rgba(251, 191, 36, 0.12);
+  --color-facilitator-border: rgba(251, 191, 36, 0.35);
 
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
@@ -115,8 +116,9 @@
   --color-action-border: #ddd6fe;
   --color-action-glow: rgba(124, 58, 237, 0.1);
 
-  --color-facilitator: #d97706;
+  --color-facilitator: #b45309;
   --color-facilitator-bg: #fef3c7;
+  --color-facilitator-border: #fcd34d;
 
   --text-main: #0f172a;
   --text-muted: #475569;
