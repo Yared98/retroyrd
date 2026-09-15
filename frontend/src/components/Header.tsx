@@ -81,7 +81,17 @@ export const Header: React.FC<HeaderProps> = ({
   // Sincronização do som mudo com o utilitário
   useEffect(() => {
     soundPlayer.isMuted = soundMuted;
+    if (soundMuted) {
+      soundPlayer.stop();
+    }
   }, [soundMuted]);
+
+  // Interrompe qualquer áudio pendente ao desmontar
+  useEffect(() => {
+    return () => {
+      soundPlayer.stop();
+    };
+  }, []);
 
   // Fechar menu ao clicar fora
   useEffect(() => {
@@ -119,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
       setLocalSeconds(diff);
 
       if (diff === 0 && !hasAlertedEnd) {
-        soundPlayer.playChime();
+        soundPlayer.playAlarm(5);
         setHasAlertedEnd(true);
       }
     };
@@ -133,6 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
   useEffect(() => {
     if (localSeconds > 0) {
       setHasAlertedEnd(false);
+      soundPlayer.stop();
     }
   }, [localSeconds]);
 
@@ -313,6 +324,7 @@ export const Header: React.FC<HeaderProps> = ({
                   transition: 'all 0.2s ease',
                   boxShadow: 'var(--shadow-sm)',
                   whiteSpace: 'nowrap',
+                  animation: isTimerFinished ? 'timer-alarm-blink 1s infinite ease-in-out' : 'none',
                 }}
                 title={isFacilitator ? "Controles do Timer (Clique para configurar)" : "Clique para ligar/desligar som do alarme"}
               >
@@ -470,7 +482,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                   {/* Teste de Som */}
                   <button
-                    onClick={() => soundPlayer.playChime()}
+                    onClick={() => soundPlayer.playAlarm(5)}
                     style={{
                       background: 'transparent',
                       border: '1px dashed var(--border-subtle)',
@@ -483,10 +495,12 @@ export const Header: React.FC<HeaderProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.35rem',
+                      transition: 'all var(--transition-fast)',
                     }}
+                    title="Testar alarme sonoro com 5 repetições"
                   >
                     <Bell size={12} />
-                    <span>Testar Alarme Sonoro</span>
+                    <span>Testar Alarme Sonoro (5x)</span>
                   </button>
                 </div>
               )}
