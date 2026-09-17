@@ -146,6 +146,10 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     send('TIMER_CONTROL', { action, seconds });
   }, [send]);
 
+  const updateVoteLimit = useCallback((limit: number) => {
+    send('UPDATE_VOTE_LIMIT', { limit });
+  }, [send]);
+
   return {
     snapshot,
     isConnected,
@@ -162,5 +166,6 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
     updateActionStatus,
     changePhase,
     controlTimer,
+    updateVoteLimit,
   };
 }

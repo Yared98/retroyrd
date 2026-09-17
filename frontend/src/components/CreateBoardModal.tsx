@@ -44,6 +44,9 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 
   const { t } = useTranslation();
 
+  const facilitatorSessions = recentSessions.filter(s => s.role === 'facilitator' || s.facilitatorToken);
+  const participantSessions = recentSessions.filter(s => s.role === 'participant' && !s.facilitatorToken).slice(0, 3);
+
   const voteOptions = [
     { label: t('create_board.votes_3'), value: 3 },
     { label: t('create_board.votes_5'), value: 5 },
@@ -226,7 +229,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         </form>
 
         {/* Histórico de Sessões Recentes (Facilitador) */}
-        {recentSessions.length > 0 && (
+        {facilitatorSessions.length > 0 && (
           <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
@@ -234,12 +237,12 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                 <span>{t('create_board.prev_sessions')}</span>
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'var(--bg-subtle)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                {recentSessions.length} {recentSessions.length === 1 ? t('create_board.session_singular') : t('create_board.session_plural')}
+                {facilitatorSessions.length} {facilitatorSessions.length === 1 ? t('create_board.session_singular') : t('create_board.session_plural')}
               </span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', maxHeight: 220, overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {recentSessions.map((session) => (
+              {facilitatorSessions.map((session) => (
                 <div
                   key={session.id}
                   style={{
@@ -326,6 +329,68 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                     >
                       <Trash2 size={13} />
                     </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Histórico de Sessões Recentes (Participante) */}
+        {participantSessions.length > 0 && (
+          <div style={{ marginTop: facilitatorSessions.length > 0 ? '1.5rem' : '2rem', borderTop: '1px solid var(--border-subtle)', paddingTop: '1.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
+                <History size={15} color="var(--text-dim)" />
+                <span>{t('create_board.prev_sessions_participant', 'Sessões que Participei')}</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {participantSessions.map((session) => (
+                <div
+                  key={session.id}
+                  style={{
+                    background: 'var(--bg-subtle)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '0.75rem 0.9rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-main)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {session.title}
+                    </div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', marginTop: '0.15rem' }}>
+                      {new Date(session.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                    <a
+                      href={`/board/${session.id}`}
+                      style={{
+                        background: 'var(--bg-surface)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '0.35rem 0.65rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: 'var(--text-main)',
+                        textDecoration: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.3rem',
+                      }}
+                    >
+                      <span>{t('create_board.enter')}</span>
+                      <ExternalLink size={12} />
+                    </a>
                   </div>
                 </div>
               ))}

@@ -73,6 +73,7 @@ export function App() {
     updateActionStatus,
     changePhase,
     controlTimer,
+    updateVoteLimit,
   } = useBoardSocket(boardId, facilitatorToken);
 
   // Salvar token do facilitador se recebido via query param
@@ -128,16 +129,22 @@ export function App() {
     }
   };
 
-  // Salvar automaticamente sessões abertas pelo facilitador no histórico local
+  // Salvar automaticamente sessões abertas no histórico local
   useEffect(() => {
-    if (snapshot?.board && snapshot.is_facilitator && facilitatorToken) {
+    if (snapshot?.board) {
       saveRecentSession({
         id: snapshot.board.id,
         title: snapshot.board.title,
-        facilitatorToken,
+        facilitatorToken: snapshot.is_facilitator ? facilitatorToken : null,
+        role: snapshot.is_facilitator ? 'facilitator' : 'participant',
       });
     }
   }, [snapshot?.board?.id, snapshot?.board?.title, snapshot?.is_facilitator, facilitatorToken]);
+
+  // Atualiza limite de votos
+  const handleUpdateVoteLimit = (limit: number) => {
+    updateVoteLimit(limit);
+  };
 
   // Exportar resumo em Markdown garantindo download de arquivo com extensão .md
   const handleExport = async () => {
@@ -296,6 +303,7 @@ export function App() {
           changePhase(prevPhase);
         }}
         onExport={handleExport}
+        onUpdateVoteLimit={handleUpdateVoteLimit}
         onToggleTelemetry={() => {
           if (!showMcpDrawer) {
             trackEvent('mcp_drawer_opened');

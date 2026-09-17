@@ -20,6 +20,7 @@ import {
   Volume2,
   VolumeX,
   Plus,
+  Minus,
   Bell,
   Sun,
   Moon,
@@ -44,6 +45,7 @@ interface HeaderProps {
   onNextPhase: (next: BoardPhase) => void;
   onPrevPhase?: (prev: BoardPhase) => void;
   onExport: () => void;
+  onUpdateVoteLimit?: (limit: number) => void;
   onToggleTelemetry?: () => void;
   onHome?: () => void;
 }
@@ -72,6 +74,7 @@ export const Header: React.FC<HeaderProps> = ({
   onNextPhase,
   onPrevPhase,
   onExport,
+  onUpdateVoteLimit,
   onToggleTelemetry,
   onHome,
 }) => {
@@ -306,6 +309,25 @@ export const Header: React.FC<HeaderProps> = ({
                     ? t('header.votes_unlimited', { count: userVotedCount }) 
                     : t('header.votes_count', { voted: userVotedCount, max: maxVotesPerUser })}
                 </span>
+
+                {isFacilitator && onUpdateVoteLimit && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.2rem', borderLeft: '1px solid var(--border-primary)', paddingLeft: '0.4rem' }}>
+                    <button 
+                      onClick={() => onUpdateVoteLimit(Math.max(0, maxVotesPerUser - 1))}
+                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0.1rem', display: 'flex', alignItems: 'center' }}
+                      title={t('header.decrease_votes', 'Diminuir limite de votos')}
+                    >
+                      <Minus size={12} />
+                    </button>
+                    <button 
+                      onClick={() => onUpdateVoteLimit(maxVotesPerUser + 1)}
+                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0.1rem', display: 'flex', alignItems: 'center' }}
+                      title={t('header.increase_votes', 'Aumentar limite de votos')}
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 

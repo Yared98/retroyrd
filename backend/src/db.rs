@@ -193,6 +193,15 @@ impl Database {
         Ok(())
     }
 
+    pub fn update_vote_limit(&self, board_id: &str, limit: i32) -> Result<()> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute(
+            "UPDATE boards SET max_votes_per_user = ?1 WHERE id = ?2",
+            params![limit, board_id],
+        )?;
+        Ok(())
+    }
+
     pub fn get_columns(&self, board_id: &str) -> Result<Vec<Column>> {
         let conn = self.conn.lock().unwrap();
         let mut stmt = conn.prepare(

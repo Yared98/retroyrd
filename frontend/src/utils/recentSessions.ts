@@ -1,7 +1,8 @@
 export interface RecentSession {
   id: string;
   title: string;
-  facilitatorToken: string;
+  facilitatorToken?: string | null;
+  role: 'facilitator' | 'participant';
   updatedAt: number;
 }
 
@@ -18,15 +19,16 @@ export function getRecentSessions(): RecentSession[] {
   }
 }
 
-export function saveRecentSession(session: { id: string; title: string; facilitatorToken: string }): void {
+export function saveRecentSession(session: { id: string; title: string; facilitatorToken?: string | null; role?: 'facilitator' | 'participant' }): void {
   try {
-    if (!session.id || !session.facilitatorToken) return;
+    if (!session.id) return;
     const current = getRecentSessions().filter((s) => s.id !== session.id);
     const updated: RecentSession[] = [
       {
         id: session.id,
         title: session.title || 'Retrospectiva sem título',
         facilitatorToken: session.facilitatorToken,
+        role: session.role || (session.facilitatorToken ? 'facilitator' : 'participant'),
         updatedAt: Date.now(),
       },
       ...current,

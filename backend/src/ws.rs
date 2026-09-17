@@ -444,6 +444,19 @@ async fn process_client_message(
             }
         }
 
+        "UPDATE_VOTE_LIMIT" => {
+            if !is_facilitator {
+                warn!("Tentativa não autorizada de atualizar limite de votos no board {}", board_id);
+                return;
+            }
+            if let Some(limit) = msg.payload.get("limit").and_then(|v| v.as_i64()) {
+                if state.db.update_vote_limit(board_id, limit as i32).is_ok() {
+                    info!(board_id = %board_id, limit = limit, "Limite de votos atualizado");
+                    broadcast_sync_to_room(state, board_id, room_sender).await;
+                }
+            }
+        }
+
         "TIMER_CONTROL" => {
             if !is_facilitator {
                 warn!("Tentativa não autorizada de controlar o timer no board {}", board_id);
