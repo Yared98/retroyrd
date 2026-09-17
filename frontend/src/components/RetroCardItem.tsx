@@ -249,7 +249,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               fontWeight: 700,
             }}>
               <Bot size={11} />
-              <span>{card.is_action_item ? t('card.system_action') : t('card.ai_generated')}</span>
+              <span>{t('card.ai_generated')}</span>
             </div>
           ) : phase === 'BRAINSTORM' && canEdit ? (
             <div style={{
