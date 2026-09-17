@@ -10,7 +10,8 @@ import {
   GripVertical, 
   Layers, 
   CornerDownRight,
-  Plus
+  Plus,
+  ThumbsUp
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
