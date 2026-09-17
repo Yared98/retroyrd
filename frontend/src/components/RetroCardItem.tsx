@@ -80,6 +80,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         gap: '0.6rem',
         position: 'relative',
         overflow: 'hidden',
+        flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-dim)', fontSize: '0.75rem' }}>
@@ -187,6 +188,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         transition: 'all var(--transition-fast)',
         boxShadow: isDragOver ? 'var(--shadow-md)' : 'var(--shadow-sm)',
         cursor: isGrouping ? 'grab' : 'default',
+        flexShrink: 0,
       }}
     >
       {/* Indicador de Drop em Hover */}
