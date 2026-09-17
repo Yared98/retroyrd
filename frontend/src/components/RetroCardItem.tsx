@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import type { Card, BoardPhase } from '../types';
 import { 
-  ThumbsUp, 
-  Lock, 
   Trash2, 
-  Pencil,
-  Bot, 
+  Pencil, 
   Check, 
+  Lock, 
+  Bot, 
   X, 
   GripVertical, 
   Layers, 
@@ -14,6 +13,8 @@ import {
   Plus
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface RetroCardItemProps {
   card: Card;
@@ -371,9 +372,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           </div>
         </div>
       ) : (
-        <p style={{ fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-main)', wordBreak: 'break-word' }}>
-          {card.content}
-        </p>
+        <div className="card-markdown-content" style={{ fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-main)', wordBreak: 'break-word' }}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            {card.content}
+          </ReactMarkdown>
+        </div>
       )}
 
       {/* Sub-cards agrupados sob este card (Cluster) */}
@@ -402,9 +405,13 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
                 gap: '0.5rem',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1 }}>
-                <CornerDownRight size={13} color="var(--color-primary)" style={{ flexShrink: 0 }} />
-                <span style={{ wordBreak: 'break-word' }}>{child.content}</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
+                <CornerDownRight size={13} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+                <div className="card-markdown-content" style={{ wordBreak: 'break-word', flex: 1 }}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {child.content}
+                  </ReactMarkdown>
+                </div>
               </div>
 
               {isGrouping && onUngroupCard && (

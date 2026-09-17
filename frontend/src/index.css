@@ -465,6 +465,32 @@ body {
   max-width: 480px;
 }
 
+/* Renderização de Markdown nos Cards */
+.card-markdown-content {
+  white-space: pre-wrap;
+}
+.card-markdown-content p:first-child {
+  margin-top: 0;
+}
+.card-markdown-content p:last-child {
+  margin-bottom: 0;
+}
+.card-markdown-content p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+.card-markdown-content ul, .card-markdown-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.25em;
+}
+.card-markdown-content a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+.card-markdown-content a:hover {
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .board-columns-container {
     flex-direction: column;
