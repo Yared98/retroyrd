@@ -54,8 +54,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   const [editContent, setEditContent] = useState(card.content);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
-  const [isAddingChild, setIsAddingChild] = useState(false);
-  const [childContent, setChildContent] = useState('');
   
   // Controle de "Ler mais" para cards extensos
   const [isExpanded, setIsExpanded] = useState(false);
