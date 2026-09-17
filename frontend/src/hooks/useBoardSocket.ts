@@ -112,6 +112,14 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
 
   const toggleVote = useCallback((cardId: string) => {
     send('VOTE_TOGGLE', { card_id: cardId });
+    setSnapshot((prev) => {
+      if (!prev) return prev;
+      const alreadyVoted = prev.user_voted_card_ids.includes(cardId);
+      const user_voted_card_ids = alreadyVoted
+        ? prev.user_voted_card_ids.filter((id) => id !== cardId)
+        : [...prev.user_voted_card_ids, cardId];
+      return { ...prev, user_voted_card_ids };
+    });
   }, [send]);
 
   const groupCards = useCallback((parentCardId: string, childCardIds: string[]) => {
