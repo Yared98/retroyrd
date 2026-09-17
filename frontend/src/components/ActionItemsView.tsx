@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import type { ActionItem, Card, Column } from '../types';
-import { Bot, CheckCircle2, Circle, Plus, UserCheck, ThumbsUp, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { Bot, CheckCircle2, Circle, Plus, UserCheck, ThumbsUp, ArrowRight, Sparkles, AlertCircle, CornerDownRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -179,6 +179,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 const col = columnMap.get(card.column_id);
                 const colColor = col?.color || 'var(--color-primary)';
                 const colTitle = col?.title || 'Coluna';
+                const childCards = cards.filter((c) => c.parent_card_id === card.id);
 
                 return (
                   <div
@@ -237,6 +238,44 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                         {card.content}
                       </ReactMarkdown>
                     </div>
+
+                    {childCards.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.45rem',
+                        paddingLeft: '0.5rem',
+                        borderLeft: '2px solid var(--color-primary)',
+                        marginTop: '0.25rem',
+                      }}>
+                        {childCards.map((child) => (
+                          <div
+                            key={child.id}
+                            style={{
+                              background: 'var(--cluster-bg)',
+                              border: '1px solid var(--cluster-border)',
+                              padding: '0.5rem 0.75rem',
+                              borderRadius: 'var(--radius-sm)',
+                              fontSize: '0.8rem',
+                              color: 'var(--text-muted)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '0.5rem',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', flex: 1 }}>
+                              <CornerDownRight size={13} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: '0.2rem' }} />
+                              <div className="card-markdown-content" style={{ wordBreak: 'break-word', flex: 1 }}>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {child.content}
+                                </ReactMarkdown>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {canManage && (
                       <button
