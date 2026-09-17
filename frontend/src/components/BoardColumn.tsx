@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Column, Card, BoardPhase } from '../types';
 import { RetroCardItem } from './RetroCardItem';
 import { Plus, Layers } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface BoardColumnProps {
   column: Column;
@@ -41,6 +42,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
   const [isAdding, setIsAdding] = useState(false);
   const [content, setContent] = useState('');
   const [isColumnDragOver, setIsColumnDragOver] = useState(false);
+  const { t } = useTranslation();
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,11 +91,8 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
           onMoveCard(cardId, column.id);
         }
       }}
-      className={isColumnDragOver ? 'column-dropzone-active' : ''}
+      className={`board-column ${isColumnDragOver ? 'column-dropzone-active' : ''}`}
       style={{
-        flex: '1 1 320px',
-        minWidth: 320,
-        maxWidth: 480,
         display: 'flex',
         flexDirection: 'column',
         background: 'var(--bg-surface)',
@@ -146,7 +145,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
               display: 'flex',
               transition: 'all var(--transition-fast)',
             }}
-            title="Adicionar Card"
+            title={t('column.add_card')}
           >
             <Plus size={15} />
           </button>
@@ -163,7 +162,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             fontWeight: 600,
           }}>
             <Layers size={13} />
-            <span>Arraste para mesclar</span>
+            <span>{t('column.drag_merge')}</span>
           </div>
         )}
       </div>
@@ -176,7 +175,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             rows={2}
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Escreva sua ideia, bloqueio ou elogio..."
+            placeholder={t('column.placeholder')}
             style={{
               width: '100%',
               background: 'var(--bg-input)',
@@ -209,7 +208,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 padding: '0.3rem 0.6rem',
               }}
             >
-              Cancelar
+              {t('column.cancel')}
             </button>
             <button
               type="submit"
@@ -224,7 +223,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
                 borderRadius: 'var(--radius-sm)',
               }}
             >
-              Adicionar
+              {t('column.add')}
             </button>
           </div>
         </form>
@@ -247,7 +246,7 @@ export const BoardColumn: React.FC<BoardColumnProps> = ({
             border: '1px dashed var(--border-subtle)',
             borderRadius: 'var(--radius-md)',
           }}>
-            Nenhum card ainda nesta coluna.
+            {t('column.empty')}
           </div>
         ) : (
           topLevelCards.map((card) => {

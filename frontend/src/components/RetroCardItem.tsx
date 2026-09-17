@@ -13,6 +13,7 @@ import {
   CornerDownRight,
   Plus
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface RetroCardItemProps {
   card: Card;
@@ -51,6 +52,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   const [editContent, setEditContent] = useState(card.content);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const { t } = useTranslation();
 
   const isGrouping = phase === 'GROUPING';
 
@@ -88,7 +90,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
             borderRadius: 'var(--radius-sm)',
             color: 'var(--text-dim)',
           }}>
-            Modo Cego
+            {t('card.blind_mode')}
           </span>
         </div>
 
@@ -104,7 +106,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         </div>
 
         <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
-          Revelado automaticamente na fase de Grouping
+          {t('card.revealed_automatically')}
         </div>
       </div>
     );
@@ -246,8 +248,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               fontSize: '0.7rem',
               fontWeight: 700,
             }}>
-              <Bot size={12} />
-              <span>Injetado por IA</span>
+              <Bot size={11} />
+              <span>{card.is_action_item ? t('card.system_action') : t('card.ai_generated')}</span>
             </div>
           ) : phase === 'BRAINSTORM' && canEdit ? (
             <div style={{
@@ -263,7 +265,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               fontWeight: 600,
             }}>
               <Lock size={11} />
-              <span>Visível só para você</span>
+              <span>{t('card.visible_only_you')}</span>
             </div>
           ) : null}
         </div>
@@ -272,34 +274,32 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         {canEdit && (phase === 'BRAINSTORM' || phase === 'GROUPING') && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
             <button
-              onClick={() => setIsEditing(!isEditing)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-dim)',
-                cursor: 'pointer',
-                padding: '0.2rem',
-                borderRadius: 'var(--radius-sm)',
-                display: 'flex',
-              }}
-              title="Editar Card"
-            >
-              <Pencil size={13} />
-            </button>
-            <button
               onClick={() => onDelete(card.id)}
               style={{
                 background: 'transparent',
                 border: 'none',
                 color: 'var(--text-dim)',
                 cursor: 'pointer',
-                padding: '0.2rem',
+                padding: '0.3rem',
                 borderRadius: 'var(--radius-sm)',
-                display: 'flex',
               }}
-              title="Excluir Card"
+              title={t('card.delete')}
             >
               <Trash2 size={13} />
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-dim)',
+                padding: '0.3rem',
+                borderRadius: 'var(--radius-sm)',
+                cursor: 'pointer',
+              }}
+              title={t('card.edit')}
+            >
+              <Pencil size={13} />
             </button>
           </div>
         )}
@@ -328,21 +328,26 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.4rem' }}>
             <button
-              onClick={() => setIsEditing(false)}
+              onClick={() => {
+                setEditContent(card.content);
+                setIsEditing(false);
+              }}
               style={{
-                background: 'var(--bg-subtle)',
+                background: 'var(--bg-subtle-hover)',
                 border: '1px solid var(--border-subtle)',
-                color: 'var(--text-muted)',
-                padding: '0.3rem 0.6rem',
+                color: 'var(--text-dim)',
+                padding: '0.2rem 0.5rem',
                 borderRadius: 'var(--radius-sm)',
-                fontSize: '0.75rem',
+                fontSize: '0.7rem',
+                fontWeight: 600,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.25rem',
+                gap: '0.3rem',
               }}
             >
-              <X size={12} /> Cancelar
+              <X size={12} />
+              <span>{t('card.cancel')}</span>
             </button>
             <button
               onClick={handleSave}
@@ -360,7 +365,8 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
                 gap: '0.25rem',
               }}
             >
-              <Check size={12} /> Salvar
+              <Check size={12} />
+              <span>{t('card.save')}</span>
             </button>
           </div>
         </div>
@@ -417,7 +423,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
                     borderRadius: 'var(--radius-sm)',
                     flexShrink: 0,
                   }}
-                  title="Desagrupar este card"
+                  title={t('card.ungroup')}
                 >
                   <X size={13} />
                 </button>
@@ -473,11 +479,11 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
                 e.stopPropagation();
                 setShowReactionPicker(!showReactionPicker);
               }}
-              title="Adicionar micro-reação"
+              title={t('card.add_reaction')}
               style={{ padding: '0.18rem 0.45rem', opacity: showReactionPicker ? 1 : 0.75 }}
             >
               <Plus size={11} />
-              <span style={{ fontSize: '0.68rem' }}>{showReactionPicker ? '✕' : 'Reagir'}</span>
+              <span style={{ fontSize: '0.68rem' }}>{showReactionPicker ? '✕' : t('card.react')}</span>
             </button>
           )}
         </div>

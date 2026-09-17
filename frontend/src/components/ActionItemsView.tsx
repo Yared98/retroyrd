@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import type { ActionItem, Card, Column } from '../types';
 import { Bot, CheckCircle2, Circle, Plus, UserCheck, ThumbsUp, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ActionItemsViewProps {
   items: ActionItem[];
@@ -22,6 +23,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
   const [desc, setDesc] = useState('');
   const [owner, setOwner] = useState('');
   const [showAdd, setShowAdd] = useState(false);
+  const { t } = useTranslation();
 
   // Mapeamento de colunas por id para color e titulo
   const columnMap = useMemo(() => {
@@ -91,15 +93,15 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-action)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              {canManage ? 'Fase 5: Síntese & Compromissos' : 'Fase 6: Sessão Arquivada'}
+              {canManage ? t('action_items.phase5_title') : t('action_items.phase6_title')}
             </div>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-              {canManage ? 'Plano de Ação da Retrospectiva' : 'Retrospectiva Concluída'}
+              {canManage ? t('action_items.phase5_heading') : t('action_items.phase6_heading')}
             </h2>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
               {canManage 
-                ? 'As ideias foram votadas. Agora a equipe converte os principais pontos de atenção em compromissos executáveis com responsáveis definidos.'
-                : 'Esta sessão foi encerrada. O plano de ação abaixo é mantido apenas para acompanhamento.'}
+                ? t('action_items.phase5_desc')
+                : t('action_items.phase6_desc')}
             </div>
           </div>
         </div>
@@ -112,9 +114,9 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
             padding: '0.5rem 1rem',
             textAlign: 'right',
           }}>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>Progresso</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontWeight: 600 }}>{t('action_items.progress')}</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 800, color: completedCount === items.length ? 'var(--color-went-well)' : 'var(--text-main)' }}>
-              {completedCount} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-dim)' }}>/ {items.length} concluídos</span>
+              {completedCount} <span style={{ fontSize: '0.85rem', fontWeight: 500, color: 'var(--text-dim)' }}>/ {items.length} {t('action_items.completed')}</span>
             </div>
           </div>
         )}
@@ -139,16 +141,16 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ThumbsUp size={16} color="var(--color-primary)" />
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-                Tópicos Priorizados (Mais Votados)
+                {t('action_items.prioritized_topics')}
               </h3>
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-              {prioritizedCards.length} tópicos
+              {prioritizedCards.length} {t('action_items.topics')}
             </span>
           </div>
 
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
-            Estes são os temas mais votados pela equipe. Use-os como base para formular as ações à direita.
+            {t('action_items.prioritized_desc')}
           </div>
 
           <div style={{
@@ -168,7 +170,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 border: '1px dashed var(--border-subtle)',
                 borderRadius: 'var(--radius-md)',
               }}>
-                Nenhum tópico registrado na retrospectiva.
+                {t('action_items.no_topics')}
               </div>
             ) : (
               prioritizedCards.map((card) => {
@@ -219,7 +221,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                         borderRadius: 'var(--radius-full)',
                       }}>
                         <ThumbsUp size={11} />
-                        {card.vote_count} {card.vote_count === 1 ? 'voto' : 'votos'}
+                        {card.vote_count} {card.vote_count === 1 ? t('action_items.vote_singular') : t('action_items.vote_plural')}
                       </span>
                     </div>
 
@@ -250,8 +252,8 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                           marginTop: '0.25rem',
                         }}
                       >
-                        <ArrowRight size={13} />
-                        <span>Transformar em Ação</span>
+                        <ArrowRight size={12} />
+                        <span>{t('action_items.create_action')}</span>
                       </button>
                     )}
                   </div>
@@ -272,10 +274,10 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0 }}>
-                Compromissos & Ações
+                {t('action_items.action_board')}
               </h3>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', marginTop: '0.15rem' }}>
-                Defina o que será feito e quem assume a responsabilidade.
+                {t('action_items.create_new_commitment')}
               </div>
             </div>
 
@@ -298,7 +300,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 }}
               >
                 <Plus size={15} />
-                <span>Nova Ação</span>
+                <span>{t('action_items.create_new_action')}</span>
               </button>
             )}
           </div>
@@ -320,7 +322,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                 autoFocus
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                placeholder="Qual é a ação clara a ser tomada?"
+                placeholder={t('action_items.what_to_do')}
                 style={{
                   background: 'var(--bg-input)',
                   border: '1px solid var(--border-highlight)',
@@ -337,7 +339,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                   type="text"
                   value={owner}
                   onChange={(e) => setOwner(e.target.value)}
-                  placeholder="Responsável / Squad (opcional)"
+                  placeholder={t('action_items.owner_optional')}
                   style={{
                     flex: 1,
                     minWidth: 160,
@@ -363,7 +365,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                     fontSize: '0.82rem',
                   }}
                 >
-                  Cancelar
+                  {t('action_items.cancel')}
                 </button>
                 <button
                   type="submit"
@@ -380,7 +382,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                     transition: 'all var(--transition-fast)',
                   }}
                 >
-                  Salvar Ação
+                  {t('action_items.add')}
                 </button>
               </div>
             </form>
@@ -403,10 +405,10 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
               }}>
                 <AlertCircle size={28} color="var(--text-dim)" />
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  Nenhum item de ação criado ainda.
+                  {t('action_items.no_actions_yet')}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-dim)', maxWidth: 360 }}>
-                  Clique em "+ Transformar em Ação" em qualquer tópico prioritário ao lado, ou use o botão "+ Nova Ação". A IA também pode injetar ações autonomamente via MCP!
+                  {t('action_items.add_first_action')}
                 </div>
               </div>
             ) : (
@@ -446,10 +448,10 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                         }}
                         title={
                           !canManage
-                            ? 'Sessão arquivada (Somente leitura)'
+                            ? t('action_items.archived_readonly')
                             : isDone
-                              ? 'Marcar como pendente'
-                              : 'Marcar como concluído'
+                              ? t('action_items.mark_pending')
+                              : t('action_items.mark_done')
                         }
                       >
                         {isDone ? <CheckCircle2 size={19} /> : <Circle size={19} />}
@@ -481,7 +483,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                               borderRadius: 'var(--radius-full)',
                             }}>
                               <Bot size={11} />
-                              <span>Injetado por IA via MCP</span>
+                              <span>{t('action_items.injected_ai')}</span>
                             </span>
                           )}
 

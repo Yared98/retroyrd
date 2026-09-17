@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Check, Crown, ArrowRight, Eye, BarChart2, X } from 'lucide-react';
 import type { SafetyCheckSummary, BoardPhase } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface SafetyCheckModalProps {
   hasVoted: boolean;
@@ -12,12 +13,12 @@ interface SafetyCheckModalProps {
   onNextPhase?: (nextPhase: BoardPhase) => void;
 }
 
-const SCORES = [
-  { value: 1, title: 'Nada seguro', desc: 'Relutante em expor problemas ou discordâncias' },
-  { value: 2, title: 'Cauteloso', desc: 'Apenas feedbacks superficiais e ponderados' },
-  { value: 3, title: 'Neutro', desc: 'Falo se me perguntarem diretamente' },
-  { value: 4, title: 'Confortável', desc: 'Seguro para críticas construtivas e melhorias' },
-  { value: 5, title: 'Totalmente seguro', desc: 'Zero hesitação, transparência e franqueza radical' },
+const getScores = (t: any) => [
+  { value: 1, title: t('safety.score_1_title'), desc: t('safety.score_1_desc') },
+  { value: 2, title: t('safety.score_2_title'), desc: t('safety.score_2_desc') },
+  { value: 3, title: t('safety.score_3_title'), desc: t('safety.score_3_desc') },
+  { value: 4, title: t('safety.score_4_title'), desc: t('safety.score_4_desc') },
+  { value: 5, title: t('safety.score_5_title'), desc: t('safety.score_5_desc') },
 ];
 
 export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
@@ -36,6 +37,8 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
     isFacilitator && (safetySummary?.count ?? 0) > 0 ? 'FACILITATOR_RESULTS' : 'VOTE'
   );
   const [isMinimized, setIsMinimized] = useState(false);
+  const { t } = useTranslation();
+  const SCORES = getScores(t);
 
   const handleSubmit = () => {
     if (selectedScore !== null) {
@@ -73,7 +76,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           }}
         >
           <ShieldCheck size={18} color="var(--color-primary)" />
-          <span>Abrir Checagem de Segurança</span>
+          <span>{t('safety.open_check')}</span>
           {isFacilitator && (
             <span style={{
               background: 'var(--color-facilitator-bg)',
@@ -84,7 +87,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
               fontSize: '0.7rem',
               fontWeight: 700,
             }}>
-              Facilitador
+              {t('safety.facilitator')}
             </span>
           )}
         </button>
@@ -122,7 +125,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
             letterSpacing: '0.02em',
           }}>
             <Crown size={14} color="var(--color-facilitator)" />
-            <span>VOCÊ É O FACILITADOR DESTA SESSÃO</span>
+            <span>{t('safety.facilitator_badge')}</span>
           </div>
         )}
 
@@ -140,14 +143,14 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
             </div>
             <div>
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                {isLateJoin ? 'Checagem de Segurança Psicológica' : 'Fase 1: Checagem de Segurança Psicológica'}
+                {isLateJoin ? t('safety.title_late') : t('safety.title_normal')}
               </div>
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em', margin: 0 }}>
-                Como você se sente para falar abertamente hoje?
+                {t('safety.question')}
               </h2>
               {isLateJoin && (
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>
-                  A retrospectiva já começou, mas sua opinião anônima é fundamental para o clima da equipe!
+                  {t('safety.late_desc')}
                 </p>
               )}
             </div>
@@ -171,13 +174,13 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   alignItems: 'center',
                   gap: '0.35rem',
                   flexShrink: 0,
-                  transition: 'all var(--transition-fast)',
-                }}
-                title="Pular checagem por enquanto"
-              >
-                <X size={14} />
-                <span>Pular</span>
-              </button>
+                transition: 'all var(--transition-fast)',
+              }}
+              title={t('safety.skip_tooltip')}
+            >
+              <X size={14} />
+              <span>{t('safety.skip')}</span>
+            </button>
             )}
 
             <button
@@ -197,11 +200,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 flexShrink: 0,
                 transition: 'all var(--transition-fast)',
               }}
-              title="Minimizar e espiar o board"
-            >
-              <Eye size={14} />
-              <span>Espiar</span>
-            </button>
+            title={t('safety.peek_tooltip')}
+          >
+            <Eye size={14} />
+            <span>{t('safety.peek')}</span>
+          </button>
           </div>
         </div>
 
@@ -227,11 +230,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 fontWeight: 700,
                 fontSize: '0.8rem',
                 cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-              }}
-            >
-              Meu Voto
-            </button>
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            {t('safety.my_vote')}
+          </button>
             <button
               onClick={() => setActiveTab('FACILITATOR_RESULTS')}
               style={{
@@ -248,12 +251,12 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.35rem',
-              }}
-            >
-              <BarChart2 size={14} />
-              <span>Histograma da Equipe ({safetySummary?.count || 0})</span>
-            </button>
+              gap: '0.35rem',
+            }}
+          >
+            <BarChart2 size={14} />
+            <span>{t('safety.team_histogram', { count: safetySummary?.count || 0 })}</span>
+          </button>
           </div>
         )}
 
@@ -262,10 +265,10 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
           <div>
             <div style={{ marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                Como você se sente para se expressar nesta retrospectiva?
+                {t('safety.vote_question')}
               </div>
               <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Sua resposta é 100% anônima. Nenhuma identificação de usuário ou sessão é vinculada à sua nota.
+                {t('safety.vote_anon')}
               </div>
             </div>
 
@@ -335,11 +338,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       fontWeight: 700,
                       cursor: selectedScore !== null ? 'pointer' : 'not-allowed',
                       boxShadow: 'var(--shadow-sm)',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                  >
-                    Enviar Minha Avaliação
-                  </button>
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  {t('safety.submit')}
+                </button>
 
                   {/* Se for late-join, botão de pular */}
                   {isLateJoin && onDismiss && (
@@ -356,11 +359,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                         fontWeight: 600,
                         cursor: 'pointer',
                         whiteSpace: 'nowrap',
-                        transition: 'all var(--transition-fast)',
-                      }}
-                    >
-                      Pular
-                    </button>
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    {t('safety.skip')}
+                  </button>
                   )}
 
                   {/* Se for Facilitador na fase 1, pode pular o voto e avançar direto */}
@@ -380,11 +383,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                         alignItems: 'center',
                         gap: '0.4rem',
                         whiteSpace: 'nowrap',
-                        transition: 'all var(--transition-fast)',
-                      }}
-                    >
-                      <span>Avançar Fase →</span>
-                    </button>
+                      transition: 'all var(--transition-fast)',
+                    }}
+                  >
+                    <span>{t('safety.next_phase')}</span>
+                  </button>
                   )}
                 </div>
               </div>
@@ -400,14 +403,14 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   <Check size={28} color="var(--color-went-well)" />
                 </div>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
-                  Avaliação Registrada!
+                  {t('safety.registered')}
                 </h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
                   {isLateJoin
-                    ? 'Sua nota foi computada anonimamente na média de clima da equipe.'
+                    ? t('safety.msg_late')
                     : isFacilitator
-                    ? 'Como facilitador, você pode monitorar a distribuição abaixo e avançar para o Brainstorm.'
-                    : 'Aguarde o facilitador avançar a sessão para a fase de Brainstorming.'}
+                    ? t('safety.msg_facil')
+                    : t('safety.msg_wait')}
                 </p>
 
                 {isLateJoin && onDismiss && (
@@ -428,11 +431,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       justifyContent: 'center',
                       gap: '0.5rem',
                       boxShadow: 'var(--shadow-sm)',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                  >
-                    <span>Continuar para o Board</span>
-                    <ArrowRight size={18} />
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <span>{t('safety.continue_board')}</span>
+                  <ArrowRight size={18} />
                   </button>
                 )}
 
@@ -454,11 +457,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                       justifyContent: 'center',
                       gap: '0.5rem',
                       boxShadow: 'var(--shadow-sm)',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                  >
-                    <span>Iniciar Fase 2: Brainstorming (Modo Cego)</span>
-                    <ArrowRight size={18} />
+                    transition: 'all var(--transition-fast)',
+                  }}
+                >
+                  <span>{t('safety.start_phase2')}</span>
+                  <ArrowRight size={18} />
                   </button>
                 )}
               </div>
@@ -479,10 +482,10 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                 <div>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                    Sentimento da Equipe
+                    {t('safety.team_sentiment')}
                   </span>
                   <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--color-went-well)', marginTop: '0.2rem' }}>
-                    {safetySummary && safetySummary.count > 0 ? `${safetySummary.average.toFixed(1)} / 5.0` : 'Sem votos'}
+                    {safetySummary && safetySummary.count > 0 ? `${safetySummary.average.toFixed(1)} / 5.0` : t('safety.no_votes')}
                   </div>
                 </div>
 
@@ -494,7 +497,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   fontWeight: 600,
                   color: 'var(--text-muted)',
                 }}>
-                  {safetySummary?.count || 0} avaliações recebidas
+                  {safetySummary?.count || 0} {t('safety.evals_received')}
                 </div>
               </div>
 
@@ -506,7 +509,7 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   const percent = total > 0 ? (count / total) * 100 : 0;
                   return (
                     <div key={scoreNum} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem' }}>
-                      <span style={{ width: 50, color: 'var(--text-muted)' }}>Nota {scoreNum}:</span>
+                      <span style={{ width: 50, color: 'var(--text-muted)' }}>{t('safety.score_label', { score: scoreNum })}</span>
                       <div style={{ flex: 1, height: 10, background: 'var(--border-subtle)', borderRadius: 5, overflow: 'hidden' }}>
                         <div style={{
                           width: `${percent}%`,
@@ -543,11 +546,11 @@ export const SafetyCheckModal: React.FC<SafetyCheckModalProps> = ({
                   justifyContent: 'center',
                   gap: '0.5rem',
                   boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span>Encerrar Checagem e Iniciar Brainstorming (Modo Cego)</span>
-                <ArrowRight size={18} />
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span>{t('safety.end_check')}</span>
+              <ArrowRight size={18} />
               </button>
             )}
           </div>

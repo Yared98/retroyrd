@@ -450,3 +450,30 @@ body {
   transform: translateY(-1px);
 }
 
+/* Container de colunas responsivo */
+.board-columns-container {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  align-items: flex-start;
+}
+
+.board-column {
+  flex: 1 1 320px;
+  min-width: 320px;
+  max-width: 480px;
+}
+
+@media (max-width: 768px) {
+  .board-columns-container {
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+  
+  .board-column {
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+

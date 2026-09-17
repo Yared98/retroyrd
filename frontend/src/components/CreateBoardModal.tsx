@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 import { Footer } from './Footer';
+import { useTranslation } from 'react-i18next';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
@@ -41,11 +42,13 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     setRecentSessions(updated);
   };
 
+  const { t } = useTranslation();
+
   const voteOptions = [
-    { label: '3 votos', value: 3 },
-    { label: '5 votos (Padrão)', value: 5 },
-    { label: '8 votos', value: 8 },
-    { label: 'Ilimitado', value: 0 },
+    { label: t('create_board.votes_3'), value: 3 },
+    { label: t('create_board.votes_5'), value: 5 },
+    { label: t('create_board.votes_8'), value: 8 },
+    { label: t('create_board.votes_unlimited'), value: 0 },
   ];
 
   return (
@@ -82,10 +85,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             boxShadow: 'var(--shadow-sm)',
             transition: 'all var(--transition-fast)',
           }}
-          title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+          title={theme === 'dark' ? t('create_board.switch_light') : t('create_board.switch_dark')}
         >
           {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="var(--color-primary)" />}
-          <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
+          <span>{theme === 'dark' ? t('create_board.light_mode') : t('create_board.dark_mode')}</span>
         </button>
       )}
 
@@ -106,28 +109,28 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               RETROYRD
             </span>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-              Criar Nova Retrospectiva
+              {t('create_board.title')}
             </h1>
           </div>
         </div>
 
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-          Retrospectivas ágeis corporativas em tempo real. Auto-hospedado (Zero Cost), anonimato criptográfico e integração nativa com IA via MCP.
+          {t('create_board.subtitle')}
         </p>
 
         {/* Features em destaque */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
             <Shield size={16} color="var(--color-went-well)" />
-            <span><strong>Segurança Psicológica:</strong> Checagem 1-5 estritamente anônima</span>
+            <span><strong>{t('create_board.feature_safety_title')}</strong> {t('create_board.feature_safety_desc')}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
             <EyeOff size={16} color="var(--color-to-improve)" />
-            <span><strong>Modo Cego:</strong> Brainstorm sem viés de ancoragem (`••••••••`)</span>
+            <span><strong>{t('create_board.feature_blind_title')}</strong> {t('create_board.feature_blind_desc')}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
             <Bot size={16} color="var(--color-action)" />
-            <span><strong>Servidor MCP Nativo:</strong> IAs leem e criam Action Items em tempo real</span>
+            <span><strong>{t('create_board.feature_mcp_title')}</strong> {t('create_board.feature_mcp_desc')}</span>
           </div>
         </div>
 
@@ -135,7 +138,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-              Nome da Sessão ou Sprint
+              {t('create_board.session_name_label')}
             </label>
             <input
               type="text"
@@ -143,7 +146,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex: Sprint 42 Retrospective"
+              placeholder={t('create_board.session_name_placeholder')}
               style={{
                 width: '100%',
                 background: 'var(--bg-input)',
@@ -162,10 +165,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                Limite de Votos por Participante (Dot Voting)
+                {t('create_board.vote_limit_label')}
               </label>
               <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>
-                {maxVotes === 0 ? 'Sem limite' : `${maxVotes} votos por pessoa`}
+                {maxVotes === 0 ? t('create_board.no_limit') : `${maxVotes} ${t('create_board.votes_per_person')}`}
               </span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
@@ -217,7 +220,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               marginTop: '0.5rem',
             }}
           >
-            <span>{isCreating ? 'Iniciando Sessão...' : 'Iniciar Retrospectiva'}</span>
+            <span>{isCreating ? t('create_board.starting_session') : t('create_board.start_retro')}</span>
             <ArrowRight size={16} />
           </button>
         </form>
@@ -228,10 +231,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-main)', fontSize: '0.85rem', fontWeight: 700 }}>
                 <History size={15} color="var(--color-primary)" />
-                <span>Sessões Anteriores (Facilitador)</span>
+                <span>{t('create_board.prev_sessions')}</span>
               </div>
               <span style={{ fontSize: '0.72rem', color: 'var(--text-dim)', background: 'var(--bg-subtle)', padding: '0.15rem 0.5rem', borderRadius: 'var(--radius-full)' }}>
-                {recentSessions.length} {recentSessions.length === 1 ? 'sessão' : 'sessões'}
+                {recentSessions.length} {recentSessions.length === 1 ? t('create_board.session_singular') : t('create_board.session_plural')}
               </span>
             </div>
 
@@ -264,7 +267,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleCopyInvite(session.id)}
-                      title="Copiar link de convite"
+                      title={t('create_board.copy_invite')}
                       style={{
                         background: 'var(--bg-surface)',
                         border: '1px solid var(--border-subtle)',
@@ -279,7 +282,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                       }}
                     >
                       {copiedSessionId === session.id ? <Check size={12} color="var(--color-went-well)" /> : <Share2 size={12} />}
-                      <span>{copiedSessionId === session.id ? 'Copiado!' : 'Convidar'}</span>
+                      <span>{copiedSessionId === session.id ? t('create_board.copied') : t('create_board.invite')}</span>
                     </button>
 
                     <a
@@ -298,16 +301,16 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                         gap: '0.3rem',
                         transition: 'all var(--transition-fast)',
                       }}
-                      title="Abrir como facilitador com token de acesso"
+                      title={t('create_board.open_facilitator')}
                     >
-                      <span>Acessar</span>
+                      <span>{t('create_board.access')}</span>
                       <ExternalLink size={12} />
                     </a>
 
                     <button
                       type="button"
                       onClick={() => setSessionToDelete(session)}
-                      title="Remover do histórico deste navegador"
+                      title={t('create_board.remove_history_tooltip')}
                       style={{
                         background: 'transparent',
                         border: 'none',
@@ -373,10 +376,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               </div>
               <div>
                 <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
-                  Remover Sessão do Histórico?
+                  {t('create_board.remove_history_title')}
                 </h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', margin: '0.4rem 0 0 0', lineHeight: 1.45 }}>
-                  Tem certeza que deseja remover a retrospectiva <strong style={{ color: 'var(--text-main)' }}>"{sessionToDelete.title}"</strong> deste navegador?
+                  {t('create_board.remove_history_confirm1')} <strong style={{ color: 'var(--text-main)' }}>"{sessionToDelete.title}"</strong> {t('create_board.remove_history_confirm2')}
                 </p>
               </div>
             </div>
@@ -390,7 +393,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               color: 'var(--text-dim)',
               lineHeight: 1.4,
             }}>
-              ⚠️ O link com token de facilitador salvo localmente será esquecido. Caso você não possua a URL salva externamente, você não conseguirá reaver os privilégios de facilitador nesta sessão.
+              {t('create_board.remove_history_warning')}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', marginTop: '0.5rem' }}>
@@ -409,7 +412,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                   transition: 'all var(--transition-fast)',
                 }}
               >
-                Cancelar
+                {t('create_board.cancel')}
               </button>
               <button
                 type="button"
@@ -434,7 +437,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                 }}
               >
                 <Trash2 size={14} />
-                <span>Sim, Remover</span>
+                <span>{t('create_board.yes_remove')}</span>
               </button>
             </div>
           </div>

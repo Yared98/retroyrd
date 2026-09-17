@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Bot, Sparkles, Send, Copy, Check, Terminal, Shield, Key } from 'lucide-react';
 import type { BoardStateSnapshot } from '../types';
+import { useTranslation, Trans } from 'react-i18next';
 
 interface McpTelemetryDrawerProps {
   isOpen: boolean;
@@ -28,6 +29,8 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
     'Registered Tool: group_cards (requires facilitator_token)',
     'Registered Tool: change_phase (requires facilitator_token)',
   ]);
+
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -142,14 +145,14 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
             </h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--color-went-well)', marginTop: '0.15rem' }}>
               <span className="pulse-dot" style={{ width: 6, height: 6 }} />
-              <span>Servidor Ativo em /mcp</span>
+              <span>{t('mcp_drawer.server_active')}</span>
             </div>
           </div>
         </div>
         <button
           onClick={onClose}
           style={{ background: 'transparent', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}
-          title="Fechar"
+          title={t('mcp_drawer.close')}
         >
           <X size={20} />
         </button>
@@ -171,7 +174,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-main)' }}>
               <Terminal size={15} color="var(--color-primary)" />
-              <span>Conectar à sua IA</span>
+              <span>{t('mcp_drawer.connect_ai')}</span>
             </div>
             {snapshot.is_facilitator ? (
               <span style={{
@@ -187,7 +190,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 gap: '0.25rem',
               }}>
                 <Key size={10} />
-                <span>Facilitador</span>
+                <span>{t('mcp_drawer.facilitator')}</span>
               </span>
             ) : (
               <span style={{
@@ -203,19 +206,19 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 gap: '0.25rem',
               }}>
                 <Shield size={10} />
-                <span>Participante</span>
+                <span>{t('mcp_drawer.participant')}</span>
               </span>
             )}
           </div>
 
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
-            Incorpore este servidor no Claude Desktop, Cursor, Claude Code, ChatGPT ou Antigravity para permitir que seu LLM leia o board e interaja em tempo real.
+            {t('mcp_drawer.embed_desc')}
           </p>
 
           {/* 1. URL do Servidor MCP */}
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '0.25rem', textTransform: 'uppercase' }}>
-              URL do Servidor MCP
+              {t('mcp_drawer.server_url')}
             </div>
             <div style={{ display: 'flex', gap: '0.4rem' }}>
               <input
@@ -249,10 +252,10 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                   whiteSpace: 'nowrap',
                   transition: 'all var(--transition-fast)',
                 }}
-                title="Copiar URL do Servidor MCP"
+                title={t('mcp_drawer.copy_url')}
               >
                 {copiedUrl ? <Check size={12} /> : <Copy size={12} />}
-                <span>{copiedUrl ? 'Copiado!' : 'Copiar URL'}</span>
+                <span>{copiedUrl ? t('mcp_drawer.copied') : t('mcp_drawer.copy_url')}</span>
               </button>
             </div>
           </div>
@@ -260,7 +263,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           {/* 2. Resource URI Deste Board */}
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', marginBottom: '0.25rem', textTransform: 'uppercase' }}>
-              Resource URI Deste Board
+              {t('mcp_drawer.board_uri')}
             </div>
             <div style={{ display: 'flex', gap: '0.4rem' }}>
               <input
@@ -294,16 +297,16 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                   whiteSpace: 'nowrap',
                   transition: 'all var(--transition-fast)',
                 }}
-                title="Copiar URI do Board"
+                title={t('mcp_drawer.copy_uri')}
               >
                 {copiedUri ? <Check size={12} /> : <Copy size={12} />}
-                <span>{copiedUri ? 'Copiado!' : 'Copiar URI'}</span>
+                <span>{copiedUri ? t('mcp_drawer.copied') : t('mcp_drawer.copy_uri')}</span>
               </button>
             </div>
             <span style={{ fontSize: '0.67rem', color: 'var(--text-dim)', marginTop: '0.2rem', display: 'block' }}>
               {snapshot.is_facilitator
-                ? '✓ Inclui seu token de facilitador para operações administrativas (agrupar cards e mudar fases).'
-                : '🛡️ Modo participante: protege o anonimato e mascara cards durante o modo cego.'}
+                ? t('mcp_drawer.facil_token_desc')
+                : t('mcp_drawer.part_token_desc')}
             </span>
           </div>
 
@@ -311,7 +314,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           <div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
               <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase' }}>
-                Configuração JSON (Claude Desktop / Cursor)
+                {t('mcp_drawer.json_config')}
               </span>
               <button
                 onClick={() => copyToClipboard(jsonConfigSnippet, setCopiedConfig)}
@@ -329,7 +332,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 }}
               >
                 {copiedConfig ? <Check size={11} /> : <Copy size={11} />}
-                <span>{copiedConfig ? 'Copiado!' : 'Copiar JSON'}</span>
+                <span>{copiedConfig ? t('mcp_drawer.copied') : t('mcp_drawer.copy_json')}</span>
               </button>
             </div>
             <pre style={{
@@ -360,27 +363,27 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
             <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Fase Ativa</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.active_phase')}</span>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-primary)' }}>
                 {snapshot.board.phase}
               </div>
             </div>
             <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total de Cards</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.total_cards')}</span>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                {snapshot.cards.length} cards
+                {snapshot.cards.length} {t('mcp_drawer.cards_count')}
               </div>
             </div>
             <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Safety Score</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.safety_score')}</span>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-went-well)' }}>
                 {snapshot.safety_summary ? `${snapshot.safety_summary.average.toFixed(1)} / 5.0` : 'N/A'}
               </div>
             </div>
             <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Action Items</span>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.action_items')}</span>
               <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-action)' }}>
-                {snapshot.action_items.length} itens
+                {snapshot.action_items.length} {t('mcp_drawer.items_count')}
               </div>
             </div>
           </div>
@@ -395,10 +398,12 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem', color: '#c4b5fd', fontSize: '0.85rem', fontWeight: 700 }}>
             <Sparkles size={16} />
-            <span>Simular Injeção Autônoma de IA via MCP</span>
+            <span>{t('mcp_drawer.simulate_injection')}</span>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1rem', lineHeight: '1.4' }}>
-            LLMs conectados ao servidor MCP podem executar a tool <code>create_card</code> para sugerir soluções automaticamente a partir dos problemas mais votados.
+            <Trans i18nKey="mcp_drawer.simulate_desc">
+              LLMs conectados ao servidor MCP podem executar a tool <code>create_card</code> para sugerir soluções automaticamente a partir dos problemas mais votados.
+            </Trans>
           </p>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -406,7 +411,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
               type="text"
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder="Ex: Adicionar retry exponencial no worker"
+              placeholder={t('mcp_drawer.simulate_placeholder')}
               style={{
                 flex: 1,
                 background: 'var(--bg-input)',
@@ -447,7 +452,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
         {/* Console / Telemetria em tempo real */}
         <div>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
-            Logs de Telemetria do Servidor MCP
+            {t('mcp_drawer.telemetry_logs')}
           </div>
           <div style={{
             background: 'var(--bg-input)',

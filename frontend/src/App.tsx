@@ -12,6 +12,7 @@ import { getSafetyAssessment } from './utils/safety';
 import { initAnalytics, trackPageView, trackEvent } from './utils/analytics';
 import { Search, User, Sparkles, Star, X, ShieldCheck } from 'lucide-react';
 import type { BoardPhase } from './types';
+import { useTranslation, Trans } from 'react-i18next';
 
 export function App() {
   // Parsing de URL para identificar boardId e facilitator_token
@@ -44,6 +45,8 @@ export function App() {
     if (saved === 'light' || saved === 'dark') return saved;
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   });
+
+  const { t } = useTranslation();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -254,7 +257,7 @@ export function App() {
       }}>
         <div className="pulse-dot" style={{ width: 14, height: 14 }} />
         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
-          {isConnected ? 'Sincronizando estado do board...' : 'Conectando ao servidor...'}
+          {isConnected ? t('app.syncing') : t('app.connecting')}
         </div>
       </div>
     );
@@ -330,7 +333,7 @@ export function App() {
                 fontSize: '0.82rem',
               }}>
                 <ShieldCheck size={15} />
-                <span>Clima da Equipe (Safety Check): {safety_summary.average.toFixed(1)} / 5.0</span>
+                <span>{t('app.team_climate')}: {safety_summary.average.toFixed(1)} / 5.0</span>
               </div>
               <span style={{ color: 'var(--text-dim)' }}>•</span>
               <span style={{
@@ -342,7 +345,7 @@ export function App() {
                 fontWeight: 600,
                 color: 'var(--text-muted)',
               }}>
-                {safety_summary.count} {safety_summary.count === 1 ? 'membro avaliou' : 'membros avaliaram'}
+                {safety_summary.count} {safety_summary.count === 1 ? t('app.member_eval') : t('app.members_eval')}
               </span>
               <span style={{ color: 'var(--text-dim)' }}>•</span>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>
@@ -367,7 +370,7 @@ export function App() {
                         color: votes > 0 ? 'var(--text-main)' : 'var(--text-dim)',
                         fontWeight: votes > 0 ? 700 : 400,
                       }}
-                      title={`${votes} voto(s) com nota ${score}`}
+                      title={`${votes} ${t('app.votes_with_score')} ${score}`}
                     >
                       {score}★: {votes}
                     </span>
@@ -388,7 +391,7 @@ export function App() {
                   padding: '0.15rem',
                   borderRadius: 'var(--radius-sm)',
                 }}
-                title="Ocultar barra de segurança (o indicador continuará na barra superior)"
+                title={t('app.hide_safety_bar')}
                 aria-label="Ocultar resumo"
               >
                 <X size={14} />
@@ -438,7 +441,7 @@ export function App() {
               <input
                 type="text"
                 className="board-search-input"
-                placeholder="Buscar cards por conteúdo..."
+                placeholder={t('app.search_placeholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -454,7 +457,7 @@ export function App() {
                     display: 'flex',
                     padding: 0,
                   }}
-                  title="Limpar busca"
+                  title={t('app.clear_search')}
                 >
                   <X size={14} />
                 </button>
@@ -467,7 +470,7 @@ export function App() {
                 className={`board-filter-chip ${filterType === 'ALL' ? 'is-active' : ''}`}
                 onClick={() => setFilterType('ALL')}
               >
-                <span>Todos</span>
+                <span>{t('app.filter_all')}</span>
                 <span style={{ fontSize: '0.7rem', opacity: 0.8 }}>({snapshot.cards.length})</span>
               </button>
 
@@ -475,30 +478,30 @@ export function App() {
                 type="button"
                 className={`board-filter-chip ${filterType === 'MINE' ? 'is-active' : ''}`}
                 onClick={() => setFilterType(filterType === 'MINE' ? 'ALL' : 'MINE')}
-                title="Mostrar apenas cards criados por você"
+                title={t('app.filter_mine_tooltip')}
               >
                 <User size={13} />
-                <span>Meus Cards</span>
+                <span>{t('app.filter_mine')}</span>
               </button>
 
               <button
                 type="button"
                 className={`board-filter-chip ${filterType === 'AI' ? 'is-active' : ''}`}
                 onClick={() => setFilterType(filterType === 'AI' ? 'ALL' : 'AI')}
-                title="Mostrar apenas cards sugeridos via MCP / IA"
+                title={t('app.filter_ai_tooltip')}
               >
                 <Sparkles size={13} />
-                <span>Gerados por IA</span>
+                <span>{t('app.filter_ai')}</span>
               </button>
 
               <button
                 type="button"
                 className={`board-filter-chip ${filterType === 'VOTED' ? 'is-active' : ''}`}
                 onClick={() => setFilterType(filterType === 'VOTED' ? 'ALL' : 'VOTED')}
-                title="Mostrar apenas cards que receberam votos"
+                title={t('app.filter_voted_tooltip')}
               >
                 <Star size={13} />
-                <span>Com Votos</span>
+                <span>{t('app.filter_voted')}</span>
               </button>
 
               {!showSafetyBanner && safety_summary && safety_summary.count > 0 && (
@@ -506,10 +509,10 @@ export function App() {
                   type="button"
                   className="board-filter-chip"
                   onClick={() => setShowSafetyBanner(true)}
-                  title="Reexibir barra de clima da equipe (Safety Check)"
+                  title={t('app.show_climate_bar')}
                 >
                   <ShieldCheck size={13} color="var(--color-went-well)" />
-                  <span>Ver Clima ({safety_summary.average.toFixed(1)}★)</span>
+                  <span>{t('app.view_climate')} ({safety_summary.average.toFixed(1)}★)</span>
                 </button>
               )}
 
@@ -531,7 +534,7 @@ export function App() {
                     textDecoration: 'underline',
                   }}
                 >
-                  Limpar ({filteredCards.length}/{snapshot.cards.length})
+                  {t('app.clear')} ({filteredCards.length}/{snapshot.cards.length})
                 </button>
               )}
             </div>
@@ -555,10 +558,12 @@ export function App() {
               <span style={{ fontSize: '1.25rem' }}>🗂️</span>
               <div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  Fase 3: Agrupamento de Ideias Similares (Grouping)
+                  {t('app.grouping_title')}
                 </div>
                 <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  Todos os cards foram revelados! <strong>Arraste um card e solte sobre outro da mesma coluna</strong> para agrupá-los em um cluster e evitar votos dispersos. Você também pode arrastar um card para outra coluna para movê-lo.
+                  <Trans i18nKey="app.grouping_desc">
+                    Todos os cards foram revelados! <strong>Arraste um card e solte sobre outro da mesma coluna</strong> para agrupá-los em um cluster e evitar votos dispersos. Você também pode arrastar um card para outra coluna para movê-lo.
+                  </Trans>
                 </div>
               </div>
             </div>
@@ -578,7 +583,7 @@ export function App() {
                   boxShadow: 'var(--shadow-sm)',
                 }}
               >
-                Concluir Agrupamento e Ir para Votação →
+                {t('app.finish_grouping')}
               </button>
             )}
           </div>
@@ -615,7 +620,7 @@ export function App() {
                   transition: 'all 0.2s ease',
                 }}
               >
-                <span>{showBoardReview ? '▲ Ocultar Colunas da Retrospectiva' : '▼ Visualizar Todas as Colunas (Somente Leitura)'}</span>
+                <span>{showBoardReview ? t('app.hide_columns') : t('app.view_columns')}</span>
               </button>
             </div>
           </div>
@@ -623,13 +628,7 @@ export function App() {
 
         {/* Grade de Colunas de Brainstorming e Votação (exibida sempre nas Fases 2, 3, 4 ou sob demanda na Fase 5) */}
         {(!isActionItemsPhase || showBoardReview) && (
-          <div style={{
-            display: 'flex',
-            gap: '1.5rem',
-            overflowX: 'auto',
-            paddingBottom: '1rem',
-            alignItems: 'flex-start',
-          }}>
+          <div className="board-columns-container">
             {sanitizedColumns.map((col) => (
               <BoardColumn
                 key={col.id}

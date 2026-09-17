@@ -1,5 +1,6 @@
 import React from 'react';
 import { Globe, ExternalLink } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface FooterProps {
   style?: React.CSSProperties;
@@ -23,6 +24,7 @@ export const GithubIcon: React.FC<{ size?: number; color?: string }> = ({ size =
 );
 
 export const Footer: React.FC<FooterProps> = ({ style }) => {
+  const { t } = useTranslation();
   return (
     <footer
       style={{
@@ -41,7 +43,7 @@ export const Footer: React.FC<FooterProps> = ({ style }) => {
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-        <span>Desenvolvido por</span>
+        <span>{t('footer.developed_by')}</span>
         <a
           href="https://yared.com.br/"
           target="_blank"
@@ -70,7 +72,7 @@ export const Footer: React.FC<FooterProps> = ({ style }) => {
           href="https://yared.com.br/"
           target="_blank"
           rel="noopener noreferrer"
-          title="Visitar yared.com.br"
+          title={t('footer.website_title')}
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -97,7 +99,7 @@ export const Footer: React.FC<FooterProps> = ({ style }) => {
           href="https://github.com/Yared98/retroyrd"
           target="_blank"
           rel="noopener noreferrer"
-          title="Ver código-fonte do RetroYRD no GitHub"
+          title={t('footer.github_title')}
           style={{
             display: 'inline-flex',
             alignItems: 'center',

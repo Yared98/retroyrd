@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
+import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
   title: string;
@@ -47,13 +48,13 @@ interface HeaderProps {
   onHome?: () => void;
 }
 
-const PHASES: { key: BoardPhase; label: string; icon: React.ComponentType<{ size: number }> }[] = [
-  { key: 'SAFETY_CHECK', label: '1. Safety Check', icon: ShieldCheck },
-  { key: 'BRAINSTORM', label: '2. Brainstorm (Blind)', icon: Lightbulb },
-  { key: 'GROUPING', label: '3. Grouping', icon: Layers },
-  { key: 'VOTING', label: '4. Voting', icon: Vote },
-  { key: 'ACTION_ITEMS', label: '5. Action Items', icon: ListTodo },
-  { key: 'ARCHIVED', label: '6. Archived', icon: Archive },
+const getPhases = (t: any): { key: BoardPhase; label: string; icon: React.ComponentType<{ size: number }> }[] => [
+  { key: 'SAFETY_CHECK', label: t('header.phase_safety'), icon: ShieldCheck },
+  { key: 'BRAINSTORM', label: t('header.phase_brainstorm'), icon: Lightbulb },
+  { key: 'GROUPING', label: t('header.phase_grouping'), icon: Layers },
+  { key: 'VOTING', label: t('header.phase_voting'), icon: Vote },
+  { key: 'ACTION_ITEMS', label: t('header.phase_action'), icon: ListTodo },
+  { key: 'ARCHIVED', label: t('header.phase_archived'), icon: Archive },
 ];
 
 export const Header: React.FC<HeaderProps> = ({
@@ -81,6 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [hasAlertedEnd, setHasAlertedEnd] = useState(false);
   const [popoverAlign, setPopoverAlign] = useState<'left' | 'right'>('right');
   const timerMenuRef = useRef<HTMLDivElement>(null);
+  const { t, i18n } = useTranslation();
 
   // Sincronização do som mudo com o utilitário
   useEffect(() => {
@@ -157,9 +159,10 @@ export const Header: React.FC<HeaderProps> = ({
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const currentPhaseIndex = PHASES.findIndex((p) => p.key === phase);
-  const prevPhaseObj = currentPhaseIndex > 0 ? PHASES[currentPhaseIndex - 1] : undefined;
-  const nextPhaseObj = PHASES[currentPhaseIndex + 1];
+  const phasesList = getPhases(t);
+  const currentPhaseIndex = phasesList.findIndex((p) => p.key === phase);
+  const prevPhaseObj = currentPhaseIndex > 0 ? phasesList[currentPhaseIndex - 1] : undefined;
+  const nextPhaseObj = phasesList[currentPhaseIndex + 1];
 
   const handleCopyLink = () => {
     try {
@@ -195,7 +198,7 @@ export const Header: React.FC<HeaderProps> = ({
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
                 }}>
-                  Facilitador
+                  {t('header.facilitator')}
                 </span>
               )}
             </div>
@@ -209,8 +212,8 @@ export const Header: React.FC<HeaderProps> = ({
                   }
                 }}
                 className="header-home-btn"
-                title="Voltar para a Página Inicial (Home)"
-                aria-label="Página Inicial"
+                title={t('header.home_title')}
+                aria-label="Home"
               >
                 <Home size={14} />
               </a>
@@ -241,7 +244,7 @@ export const Header: React.FC<HeaderProps> = ({
             padding: '0.25rem 0.35rem',
             borderRadius: 'var(--radius-full)',
           }}>
-            {PHASES.map((p, idx) => {
+            {phasesList.map((p, idx) => {
               const isCurrent = p.key === phase;
               const isDone = idx < currentPhaseIndex;
               const Icon = p.icon;
@@ -300,8 +303,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <Vote size={14} />
                 <span>
                   {maxVotesPerUser === 0 
-                    ? `${userVotedCount} votos (Ilimitado)` 
-                    : `Votos: ${userVotedCount}/${maxVotesPerUser}`}
+                    ? t('header.votes_unlimited', { count: userVotedCount }) 
+                    : t('header.votes_count', { voted: userVotedCount, max: maxVotesPerUser })}
                 </span>
               </div>
             )}
@@ -343,7 +346,7 @@ export const Header: React.FC<HeaderProps> = ({
                   whiteSpace: 'nowrap',
                   animation: isTimerFinished ? 'timer-alarm-blink 1s infinite ease-in-out' : 'none',
                 }}
-                title={isFacilitator ? "Controles do Timer (Clique para configurar)" : "Clique para ligar/desligar som do alarme"}
+                title={isFacilitator ? t('header.timer_title') : t('header.timer_mute_toggle')}
               >
                 <Clock size={15} color={isTimerFinished ? 'var(--color-to-improve)' : 'var(--color-primary)'} />
                 <span>{formatTimer(localSeconds)}</span>
@@ -372,7 +375,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      Timer da Sala
+                      {t('header.timer_menu_title')}
                     </span>
                     <button
                       onClick={() => setSoundMuted(!soundMuted)}
@@ -387,10 +390,10 @@ export const Header: React.FC<HeaderProps> = ({
                         fontSize: '0.75rem',
                         padding: 0,
                       }}
-                      title={soundMuted ? "Som desativado" : "Som ativo"}
+                      title={soundMuted ? t('header.timer_mute_toggle') : t('header.timer_mute_toggle')}
                     >
                       {soundMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-                      <span>{soundMuted ? 'Mudo' : 'Som on'}</span>
+                      <span>{soundMuted ? t('header.timer_mute_on') : t('header.timer_mute_off')}</span>
                     </button>
                   </div>
 
@@ -453,7 +456,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }}
                     >
                       {timerIsRunning ? <Pause size={14} /> : <Play size={14} />}
-                      <span>{timerIsRunning ? 'Pausar' : 'Iniciar'}</span>
+                      <span>{timerIsRunning ? t('header.timer_pause') : t('header.timer_start')}</span>
                     </button>
 
                     <button
@@ -514,10 +517,10 @@ export const Header: React.FC<HeaderProps> = ({
                       gap: '0.35rem',
                       transition: 'all var(--transition-fast)',
                     }}
-                    title="Testar alarme sonoro com 5 repetições"
+                    title={t('header.timer_test')}
                   >
                     <Bell size={12} />
-                    <span>Testar Alarme Sonoro (5x)</span>
+                    <span>{t('header.timer_test')}</span>
                   </button>
                 </div>
               )}
@@ -543,10 +546,10 @@ export const Header: React.FC<HeaderProps> = ({
                   whiteSpace: 'nowrap',
                   transition: 'all var(--transition-fast)',
                 }}
-                title={`Voltar para fase: ${prevPhaseObj.label}`}
+                title={t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}
               >
                 <ArrowLeft size={14} />
-                <span className="header-btn-text">Voltar: {prevPhaseObj.label.split('. ')[1]}</span>
+                <span className="header-btn-text">{t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}</span>
               </button>
             )}
 
@@ -571,7 +574,7 @@ export const Header: React.FC<HeaderProps> = ({
                   transition: 'all var(--transition-fast)',
                 }}
               >
-                <span className="header-btn-text">Avançar: {nextPhaseObj.label.split('. ')[1]}</span>
+                <span className="header-btn-text">{t('header.btn_next', { phase: nextPhaseObj.label.split('. ')[1] })}</span>
                 <ArrowRight size={14} />
               </button>
             )}
@@ -596,10 +599,10 @@ export const Header: React.FC<HeaderProps> = ({
                 cursor: 'pointer',
                 transition: 'all var(--transition-fast)',
               }}
-              title="Copiar link de convite"
+              title={t('header.tooltip_invite')}
             >
               {copied ? <Check size={14} color="var(--color-went-well)" /> : <Share2 size={14} />}
-              <span className="header-btn-text">{copied ? 'Copiado!' : 'Convidar'}</span>
+              <span className="header-btn-text">{copied ? t('header.btn_copied') : t('header.btn_invite')}</span>
             </button>
 
             {/* Exportar Markdown */}
@@ -619,10 +622,10 @@ export const Header: React.FC<HeaderProps> = ({
                 cursor: 'pointer',
                 transition: 'all var(--transition-fast)',
               }}
-              title="Exportar Retrospectiva"
+              title={t('header.tooltip_export')}
             >
               <Download size={14} />
-              <span className="header-btn-text">Exportar</span>
+              <span className="header-btn-text">{t('header.btn_export')}</span>
             </button>
 
             {/* Alternador de Modo Claro / Escuro */}
@@ -643,12 +646,36 @@ export const Header: React.FC<HeaderProps> = ({
                   cursor: 'pointer',
                   transition: 'all var(--transition-fast)',
                 }}
-                title={theme === 'dark' ? 'Mudar para Modo Claro' : 'Mudar para Modo Escuro'}
+                title={theme === 'dark' ? t('header.tooltip_light') : t('header.tooltip_dark')}
               >
                 {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="var(--color-primary)" />}
-                <span className="header-btn-text">{theme === 'dark' ? 'Claro' : 'Escuro'}</span>
+                <span className="header-btn-text">{theme === 'dark' ? t('header.btn_light') : t('header.btn_dark')}</span>
               </button>
             )}
+
+            {/* Alternador de Idioma */}
+            <button
+              onClick={() => i18n.changeLanguage(i18n.language.startsWith('pt') ? 'en' : 'pt')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-main)',
+                padding: '0.42rem 0.55rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.75rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                transition: 'all var(--transition-fast)',
+                minWidth: '36px'
+              }}
+              title={t('header.tooltip_lang')}
+            >
+              {i18n.language.startsWith('pt') ? t('header.lang_en') : t('header.lang_pt')}
+            </button>
 
             {/* Botão de Telemetria MCP */}
             {onToggleTelemetry && (
@@ -696,8 +723,8 @@ export const Header: React.FC<HeaderProps> = ({
                 transition: 'all var(--transition-fast)',
               }}
               className="footer-badge-link"
-              title="Código-fonte no GitHub"
-              aria-label="Repositório no GitHub"
+              title={t('header.tooltip_github')}
+              aria-label="GitHub"
             >
               <GithubIcon size={14} />
             </a>
