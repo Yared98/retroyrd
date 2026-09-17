@@ -594,7 +594,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               transition: 'all var(--transition-fast)',
             }}
           >
-            <ThumbsUp size={12} />
+            <ThumbsUp size={12} fill={hasVoted ? "currentColor" : "none"} />
             <span>{totalClusterVotes}</span>
           </button>
         )}
