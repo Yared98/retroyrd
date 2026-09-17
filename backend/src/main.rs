@@ -240,13 +240,19 @@ async fn export_board_handler(
 
     for col in columns {
         md.push_str(&format!("## {}\n\n", col.title));
-        let col_cards: Vec<&crate::models::Card> = cards.iter().filter(|c| c.column_id == col.id).collect();
-        if col_cards.is_empty() {
+        let top_cards: Vec<&crate::models::Card> = cards.iter().filter(|c| c.column_id == col.id && c.parent_card_id.is_none()).collect();
+        if top_cards.is_empty() {
             md.push_str("_Nenhum card registrado._\n\n");
         } else {
-            for c in col_cards {
+            for c in top_cards {
                 let ai_tag = if c.is_ai_generated { " [🤖 IA]" } else { "" };
-                md.push_str(&format!("* {} (Votos: {}){}\n", c.content, c.vote_count, ai_tag));
+                md.push_str(&format!("* {} (Votos: {}){}\n", c.content.replace('\n', " "), c.vote_count, ai_tag));
+                
+                let child_cards: Vec<&crate::models::Card> = cards.iter().filter(|child| child.parent_card_id == Some(c.id.clone())).collect();
+                for child in child_cards {
+                    let child_ai_tag = if child.is_ai_generated { " [🤖 IA]" } else { "" };
+                    md.push_str(&format!("  * ↳ {}{}\n", child.content.replace('\n', " "), child_ai_tag));
+                }
             }
             md.push('\n');
         }
