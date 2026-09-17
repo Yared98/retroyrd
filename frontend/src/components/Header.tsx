@@ -23,8 +23,7 @@ import {
   Bell,
   Sun,
   Moon,
-  Home,
-  Globe
+  Home
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
