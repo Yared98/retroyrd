@@ -181,12 +181,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="retro-header-grid">
         {/* Lado Esquerdo: Marca, Título & Status */}
         <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="pulse-dot" />
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-went-well)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                LIVE SESSÃO
-              </span>
+              <span className="pulse-dot" title="Sessão em tempo real" />
               {isFacilitator && (
                 <span style={{
                   background: 'var(--color-facilitator-bg)',
@@ -203,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.15rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.15rem', minWidth: 0 }}>
               <a
                 href="/"
                 onClick={(e) => {
@@ -575,7 +572,7 @@ export const Header: React.FC<HeaderProps> = ({
                   transition: 'all var(--transition-fast)',
                 }}
               >
-                <span>Avançar: {nextPhaseObj.label.split('. ')[1]}</span>
+                <span className="header-btn-text">Avançar: {nextPhaseObj.label.split('. ')[1]}</span>
                 <ArrowRight size={14} />
               </button>
             )}
@@ -681,29 +678,6 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Divisor vertical */}
             <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 0.15rem' }} />
 
-            {/* Link para Site Pessoal */}
-            <a
-              href="https://yared.com.br/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-muted)',
-                padding: '0.42rem 0.55rem',
-                borderRadius: 'var(--radius-md)',
-                textDecoration: 'none',
-                transition: 'all var(--transition-fast)',
-              }}
-              className="footer-badge-link"
-              title="Website: yared.com.br"
-              aria-label="Website pessoal"
-            >
-              <Globe size={14} />
-            </a>
 
             {/* Link para GitHub do Projeto */}
             <a

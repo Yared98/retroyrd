@@ -430,8 +430,8 @@ export function App() {
         flexDirection: 'column',
         gap: '1.5rem',
       }}>
-        {/* Barra de Busca e Filtros Rápidos (exibida em todas as fases pós-Safety Check) */}
-        {board.phase !== 'SAFETY_CHECK' && (
+        {/* Barra de Busca e Filtros Rápidos (exibida apenas nas fases onde faz sentido) */}
+        {board.phase !== 'SAFETY_CHECK' && board.phase !== 'ACTION_ITEMS' && board.phase !== 'ARCHIVED' && (
           <div className="board-toolbar">
             <div className="board-search-input-wrapper">
               <Search size={15} color="var(--text-dim)" />

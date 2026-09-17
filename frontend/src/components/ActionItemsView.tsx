@@ -91,13 +91,15 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--color-action)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              Fase 5: Síntese & Compromissos
+              {canManage ? 'Fase 5: Síntese & Compromissos' : 'Fase 6: Sessão Arquivada'}
             </div>
             <h2 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--text-main)', margin: 0, letterSpacing: '-0.02em' }}>
-              Plano de Ação da Retrospectiva
+              {canManage ? 'Plano de Ação da Retrospectiva' : 'Retrospectiva Concluída'}
             </h2>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              As ideias foram votadas. Agora a equipe converte os principais pontos de atenção em compromissos executáveis com responsáveis definidos.
+              {canManage 
+                ? 'As ideias foram votadas. Agora a equipe converte os principais pontos de atenção em compromissos executáveis com responsáveis definidos.'
+                : 'Esta sessão foi encerrada. O plano de ação abaixo é mantido apenas para acompanhamento.'}
             </div>
           </div>
         </div>

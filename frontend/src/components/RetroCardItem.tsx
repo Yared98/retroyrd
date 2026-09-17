@@ -266,11 +266,7 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
               <Lock size={11} />
               <span>Visível só para você</span>
             </div>
-          ) : (
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-              Card anônimo
-            </span>
-          )}
+          ) : null}
         </div>
 
         {/* Ações do Card (Apenas Autor em Fases Editáveis) */}
