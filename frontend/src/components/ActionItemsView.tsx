@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import type { ActionItem, Card, Column } from '../types';
 import { Bot, CheckCircle2, Circle, Plus, UserCheck, ThumbsUp, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ActionItemsViewProps {
   items: ActionItem[];
@@ -225,13 +227,15 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                       </span>
                     </div>
 
-                    <div style={{
+                    <div className="card-markdown-content" style={{
                       fontSize: '0.88rem',
                       color: 'var(--text-main)',
                       lineHeight: 1.45,
                       wordBreak: 'break-word',
                     }}>
-                      {card.content}
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {card.content}
+                      </ReactMarkdown>
                     </div>
 
                     {canManage && (
@@ -458,7 +462,7 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                       </button>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                        <div style={{
+                        <div className="card-markdown-content" style={{
                           fontSize: '0.92rem',
                           fontWeight: 600,
                           color: isDone ? 'var(--text-dim)' : 'var(--text-main)',
@@ -466,7 +470,9 @@ export const ActionItemsView: React.FC<ActionItemsViewProps> = ({
                           lineHeight: '1.4',
                           wordBreak: 'break-word',
                         }}>
-                          {item.description}
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {item.description}
+                          </ReactMarkdown>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
