@@ -195,6 +195,12 @@ impl Database {
 
     pub fn update_vote_limit(&self, board_id: &str, limit: i32) -> Result<()> {
         let conn = self.conn.lock().unwrap();
+        // Zera todos os votos do board ao alterar o limite
+        conn.execute(
+            "DELETE FROM votes WHERE card_id IN (SELECT id FROM cards WHERE board_id = ?1)",
+            params![board_id],
+        )?;
+        
         conn.execute(
             "UPDATE boards SET max_votes_per_user = ?1 WHERE id = ?2",
             params![limit, board_id],

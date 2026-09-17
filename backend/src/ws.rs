@@ -451,7 +451,15 @@ async fn process_client_message(
             }
             if let Some(limit) = msg.payload.get("limit").and_then(|v| v.as_i64()) {
                 if state.db.update_vote_limit(board_id, limit as i32).is_ok() {
-                    info!(board_id = %board_id, limit = limit, "Limite de votos atualizado");
+                    info!(board_id = %board_id, limit = limit, "Limite de votos atualizado e votos zerados");
+                    
+                    let clear_msg = WsMessage {
+                        msg_type: "VOTES_CLEARED".to_string(),
+                        payload: serde_json::json!({}),
+                        timestamp: chrono_or_now(),
+                    };
+                    let _ = room_sender.send(clear_msg);
+                    
                     broadcast_sync_to_room(state, board_id, room_sender).await;
                 }
             }

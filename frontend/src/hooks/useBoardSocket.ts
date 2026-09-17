@@ -58,6 +58,11 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
                 session_hash: msg.payload.session_hash || prev.session_hash,
               };
             });
+          } else if (msg.type === 'VOTES_CLEARED') {
+            setSnapshot((prev) => {
+              if (!prev) return null;
+              return { ...prev, user_voted_card_ids: [] };
+            });
           }
         } catch (err) {
           console.error('Erro ao processar mensagem do WebSocket:', err);
