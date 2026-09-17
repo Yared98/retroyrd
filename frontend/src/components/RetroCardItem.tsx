@@ -80,7 +80,6 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-dim)', fontSize: '0.75rem' }}>
             <Lock size={12} />
-            <span>Colega Anônimo</span>
           </div>
           <span style={{
             fontSize: '0.7rem',
