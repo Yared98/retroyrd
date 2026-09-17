@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import type { Card, BoardPhase } from '../types';
 import { 
   Trash2, 
@@ -54,7 +54,26 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
   const [editContent, setEditContent] = useState(card.content);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [isAddingChild, setIsAddingChild] = useState(false);
+  const [childContent, setChildContent] = useState('');
+  
+  // Controle de "Ler mais" para cards extensos
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showReadMore, setShowReadMore] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
   const { t } = useTranslation();
+
+  useEffect(() => {
+    // Verifica se o conteúdo ultrapassa ~150px para mostrar o botão
+    if (contentRef.current && !isEditing) {
+      if (contentRef.current.scrollHeight > 155) {
+        setShowReadMore(true);
+      } else {
+        setShowReadMore(false);
+      }
+    }
+  }, [card.content, isEditing]);
 
   const isGrouping = phase === 'GROUPING';
 
@@ -375,10 +394,54 @@ export const RetroCardItem: React.FC<RetroCardItemProps> = ({
           </div>
         </div>
       ) : (
-        <div className="card-markdown-content" style={{ fontSize: '0.875rem', lineHeight: '1.5', color: 'var(--text-main)', wordBreak: 'break-word' }}>
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {card.content}
-          </ReactMarkdown>
+        <div style={{ position: 'relative' }}>
+          <div 
+            ref={contentRef}
+            className="card-markdown-content" 
+            style={{ 
+              fontSize: '0.875rem', 
+              lineHeight: '1.5', 
+              color: 'var(--text-main)', 
+              wordBreak: 'break-word',
+              maxHeight: isExpanded ? 'none' : '150px',
+              overflow: 'hidden',
+            }}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {card.content}
+            </ReactMarkdown>
+          </div>
+          
+          {!isExpanded && showReadMore && (
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: '40px',
+              background: 'linear-gradient(transparent, var(--bg-card))',
+              pointerEvents: 'none',
+            }} />
+          )}
+          
+          {showReadMore && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--color-primary)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                padding: '0.2rem 0',
+                marginTop: '0.3rem',
+                display: 'inline-block'
+              }}
+            >
+              {isExpanded ? t('card.read_less') : t('card.read_more')}
+            </button>
+          )}
         </div>
       )}
 

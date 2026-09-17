@@ -45,6 +45,8 @@ export default {
       writing_idea: 'Escrevendo ideia...',
       system_action: 'Ação do Sistema',
       visible_only_you: 'Visível só para você',
+      read_more: 'Ler mais',
+      read_less: 'Ler menos',
       save: 'Salvar',
       cancel: 'Cancelar',
       delete: 'Excluir',
