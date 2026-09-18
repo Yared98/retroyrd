@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Bot, Sparkles, Send, Copy, Check, Terminal, Shield, Key } from 'lucide-react';
 import type { BoardStateSnapshot } from '../types';
 import { useTranslation, Trans } from 'react-i18next';
@@ -33,6 +34,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
   const { t } = useTranslation();
 
   if (!isOpen) return null;
+  if (typeof document === 'undefined') return null;
 
   const mcpServerUrl = `${window.location.origin}/mcp`;
   const resourceUri = snapshot?.board?.id
@@ -105,7 +107,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
     }
   };
 
-  return (
+  return createPortal(
     <div style={{
       position: 'fixed',
       top: 0,
@@ -500,6 +502,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
