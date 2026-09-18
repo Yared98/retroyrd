@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle } from 'lucide-react';
+import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle, Globe } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
-import { Footer } from './Footer';
+import { Footer, GithubIcon } from './Footer';
+import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { useTranslation } from 'react-i18next';
 
 interface CreateBoardModalProps {
@@ -42,7 +43,12 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     setRecentSessions(updated);
   };
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const next = i18n.language.startsWith('en') ? 'pt' : 'en';
+    i18n.changeLanguage(next);
+  };
 
   const facilitatorSessions = recentSessions.filter(s => s.role === 'facilitator' || s.facilitatorToken);
   const participantSessions = recentSessions.filter(s => s.role === 'participant' && !s.facilitatorToken).slice(0, 3);
@@ -66,34 +72,88 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       position: 'relative',
       transition: 'background var(--transition-smooth)',
     }}>
-      {/* Botão de Tema no Topo Direito */}
-      {onToggleTheme && (
+      {/* Top Bar Controls — EcosystemSwitcher + Language + Theme + GitHub */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '1.25rem',
+          right: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+          zIndex: 10,
+        }}
+      >
+        <EcosystemSwitcher currentApp="retro" />
+
+        {/* Alternador de Idioma */}
         <button
-          onClick={onToggleTheme}
+          onClick={toggleLanguage}
+          className="btn-secondary"
           style={{
-            position: 'absolute',
-            top: '1.5rem',
-            right: '1.5rem',
-            display: 'flex',
+            padding: '0.35rem 0.65rem',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.45rem',
-            background: 'var(--bg-surface)',
+            gap: '0.35rem',
+            background: 'var(--bg-subtle)',
             border: '1px solid var(--border-subtle)',
             color: 'var(--text-main)',
-            padding: '0.45rem 0.85rem',
-            borderRadius: 'var(--radius-full)',
-            fontSize: '0.8rem',
-            fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: 'var(--shadow-sm)',
-            transition: 'all var(--transition-fast)',
           }}
-          title={theme === 'dark' ? t('create_board.switch_light') : t('create_board.switch_dark')}
+          title={t('app.languageToggle', 'Alternar idioma')}
         >
-          {theme === 'dark' ? <Sun size={15} color="#fbbf24" /> : <Moon size={15} color="var(--color-primary)" />}
-          <span>{theme === 'dark' ? t('create_board.light_mode') : t('create_board.dark_mode')}</span>
+          <Globe size={13} />
+          <span>{i18n.language.startsWith('en') ? 'EN' : 'PT'}</span>
         </button>
-      )}
+
+        {/* Alternador de Tema */}
+        {onToggleTheme && (
+          <button
+            onClick={onToggleTheme}
+            className="btn-secondary"
+            style={{
+              padding: '0.35rem 0.65rem',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              cursor: 'pointer',
+            }}
+            title={theme === 'dark' ? t('create_board.switch_light') : t('create_board.switch_dark')}
+          >
+            {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="var(--color-primary)" />}
+          </button>
+        )}
+
+        {/* Link GitHub */}
+        <a
+          href="https://github.com/Yared98/retroyrd"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            padding: '0.35rem 0.55rem',
+            borderRadius: 'var(--radius-full)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            textDecoration: 'none',
+            color: 'var(--text-main)',
+            background: 'var(--bg-subtle)',
+            border: '1px solid var(--border-subtle)',
+          }}
+          title={t('footer.github_title', 'Ver código-fonte do RetroYrd no GitHub')}
+          aria-label="GitHub"
+        >
+          <GithubIcon size={14} />
+        </a>
+      </div>
 
       <div className="glass-modal" style={{ maxWidth: 540, width: '100%', padding: '2.5rem' }}>
         {/* Logo / Badge */}
