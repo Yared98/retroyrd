@@ -5,7 +5,7 @@ import { useTranslation, Trans } from 'react-i18next';
 
 interface McpTelemetryDrawerProps {
   isOpen: boolean;
-  snapshot: BoardStateSnapshot;
+  snapshot?: BoardStateSnapshot | null;
   facilitatorToken?: string | null;
   onClose: () => void;
 }
@@ -35,9 +35,9 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
   if (!isOpen) return null;
 
   const mcpServerUrl = `${window.location.origin}/mcp`;
-  const resourceUri = `retro://board/${snapshot.board.id}/state${
-    snapshot.is_facilitator && facilitatorToken ? `?token=${facilitatorToken}` : ''
-  }`;
+  const resourceUri = snapshot?.board?.id
+    ? `retro://board/${snapshot.board.id}/state${snapshot.is_facilitator && facilitatorToken ? `?token=${facilitatorToken}` : ''}`
+    : `retro://board/{board_id}/state`;
 
   const jsonConfigSnippet = JSON.stringify(
     {
@@ -62,7 +62,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
   };
 
   const handleInjectAiAction = async () => {
-    if (!aiPrompt.trim()) return;
+    if (!aiPrompt.trim() || !snapshot?.board?.id) return;
     setIsInjecting(true);
 
     try {
@@ -176,7 +176,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
               <Terminal size={15} color="var(--color-primary)" />
               <span>{t('mcp_drawer.connect_ai')}</span>
             </div>
-            {snapshot.is_facilitator ? (
+            {snapshot?.is_facilitator ? (
               <span style={{
                 background: 'var(--color-facilitator-bg)',
                 color: 'var(--color-facilitator)',
@@ -192,7 +192,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 <Key size={10} />
                 <span>{t('mcp_drawer.facilitator')}</span>
               </span>
-            ) : (
+            ) : snapshot ? (
               <span style={{
                 background: 'var(--bg-subtle-hover)',
                 color: 'var(--text-muted)',
@@ -207,6 +207,22 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
               }}>
                 <Shield size={10} />
                 <span>{t('mcp_drawer.participant')}</span>
+              </span>
+            ) : (
+              <span style={{
+                background: 'var(--color-primary-subtle, rgba(99, 102, 241, 0.15))',
+                color: 'var(--color-primary)',
+                border: '1px solid var(--border-primary, rgba(99, 102, 241, 0.35))',
+                fontSize: '0.65rem',
+                fontWeight: 800,
+                padding: '0.1rem 0.45rem',
+                borderRadius: 'var(--radius-full)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}>
+                <Bot size={10} />
+                <span>MCP Server</span>
               </span>
             )}
           </div>
@@ -304,7 +320,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
               </button>
             </div>
             <span style={{ fontSize: '0.67rem', color: 'var(--text-dim)', marginTop: '0.2rem', display: 'block' }}>
-              {snapshot.is_facilitator
+              {snapshot?.is_facilitator
                 ? t('mcp_drawer.facil_token_desc')
                 : t('mcp_drawer.part_token_desc')}
             </span>
@@ -359,34 +375,40 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
           padding: '1rem',
         }}>
           <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-dim)', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-            Resource: retro://board/{snapshot.board.id.substring(0, 8)}.../metrics
+            Resource: retro://board/{snapshot?.board?.id ? `${snapshot.board.id.substring(0, 8)}...` : '{board_id}'}/metrics
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.active_phase')}</span>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-primary)' }}>
-                {snapshot.board.phase}
+          {snapshot ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.active_phase')}</span>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-primary)' }}>
+                  {snapshot.board.phase}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.total_cards')}</span>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                  {snapshot.cards.length} {t('mcp_drawer.cards_count')}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.safety_score')}</span>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-went-well)' }}>
+                  {snapshot.safety_summary ? `${snapshot.safety_summary.average.toFixed(1)} / 5.0` : 'N/A'}
+                </div>
+              </div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.action_items')}</span>
+                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-action)' }}>
+                  {snapshot.action_items.length} {t('mcp_drawer.items_count')}
+                </div>
               </div>
             </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.total_cards')}</span>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                {snapshot.cards.length} {t('mcp_drawer.cards_count')}
-              </div>
-            </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.safety_score')}</span>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-went-well)' }}>
-                {snapshot.safety_summary ? `${snapshot.safety_summary.average.toFixed(1)} / 5.0` : 'N/A'}
-              </div>
-            </div>
-            <div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{t('mcp_drawer.action_items')}</span>
-              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-action)' }}>
-                {snapshot.action_items.length} {t('mcp_drawer.items_count')}
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+              As métricas de clima da equipe (Safety Check), contagem de cards e action items são transmitidas via MCP em tempo real quando uma retrospectiva estiver aberta.
+            </p>
+          )}
         </div>
 
         {/* Simulador de Agente de IA Injetando Ação via MCP */}
@@ -406,47 +428,53 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
             </Trans>
           </p>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <input
-              type="text"
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              placeholder={t('mcp_drawer.simulate_placeholder')}
-              style={{
-                flex: 1,
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-highlight)',
-                borderRadius: 'var(--radius-sm)',
-                padding: '0.5rem 0.75rem',
-                color: 'var(--text-main)',
-                fontSize: '0.8rem',
-                outline: 'none',
-                transition: 'border-color var(--transition-fast)',
-              }}
-              onKeyDown={(e) => e.key === 'Enter' && handleInjectAiAction()}
-            />
-            <button
-              disabled={isInjecting || !aiPrompt.trim()}
-              onClick={handleInjectAiAction}
-              style={{
-                background: 'var(--color-action)',
-                border: 'none',
-                color: '#ffffff',
-                padding: '0 0.85rem',
-                borderRadius: 'var(--radius-sm)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.3rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                boxShadow: 'var(--shadow-sm)',
-                transition: 'all var(--transition-fast)',
-              }}
-            >
-              <Send size={13} />
-            </button>
-          </div>
+          {snapshot?.board?.id ? (
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="text"
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                placeholder={t('mcp_drawer.simulate_placeholder')}
+                style={{
+                  flex: 1,
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-highlight)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '0.5rem 0.75rem',
+                  color: 'var(--text-main)',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  transition: 'border-color var(--transition-fast)',
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleInjectAiAction()}
+              />
+              <button
+                disabled={isInjecting || !aiPrompt.trim()}
+                onClick={handleInjectAiAction}
+                style={{
+                  background: 'var(--color-action)',
+                  border: 'none',
+                  color: '#ffffff',
+                  padding: '0 0.85rem',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  fontSize: '0.8rem',
+                  fontWeight: 600,
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'all var(--transition-fast)',
+                }}
+              >
+                <Send size={13} />
+              </button>
+            </div>
+          ) : (
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)', fontStyle: 'italic' }}>
+              Abra ou crie uma sessão de retrospectiva para enviar ações ao vivo pelo simulador.
+            </div>
+          )}
         </div>
 
         {/* Console / Telemetria em tempo real */}

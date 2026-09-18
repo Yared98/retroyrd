@@ -3,6 +3,7 @@ import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, 
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 import { Footer, GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
+import { McpTelemetryDrawer } from './McpTelemetryDrawer';
 import { useTranslation } from 'react-i18next';
 
 interface CreateBoardModalProps {
@@ -23,6 +24,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
   const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
   const [joinCode, setJoinCode] = useState('');
   const [joinToken, setJoinToken] = useState('');
+  const [showMcpModal, setShowMcpModal] = useState(false);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>(() => getRecentSessions());
   const [copiedSessionId, setCopiedSessionId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<RecentSession | null>(null);
@@ -99,6 +101,30 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         }}
       >
         <EcosystemSwitcher currentApp="retro" />
+
+        {/* Botão MCP Padronizado */}
+        <button
+          onClick={() => setShowMcpModal(true)}
+          className="btn-secondary"
+          style={{
+            padding: '0.35rem 0.65rem',
+            borderRadius: 'var(--radius-full)',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            background: 'var(--color-primary-subtle, rgba(99, 102, 241, 0.15))',
+            border: '1px solid var(--border-primary, rgba(99, 102, 241, 0.35))',
+            color: 'var(--color-primary)',
+            cursor: 'pointer',
+            transition: 'all var(--transition-fast, 0.15s ease)',
+          }}
+          title={t('mcp_drawer.connect_ai', 'Configuração do Servidor MCP (AI)')}
+        >
+          <Bot size={13} />
+          <span>MCP</span>
+        </button>
 
         {/* Alternador de Idioma */}
         <button
@@ -717,6 +743,12 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           </div>
         </div>
       )}
+
+      {/* Gaveta de Telemetria MCP */}
+      <McpTelemetryDrawer
+        isOpen={showMcpModal}
+        onClose={() => setShowMcpModal(false)}
+      />
     </div>
   );
 };

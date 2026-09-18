@@ -24,6 +24,13 @@ A execução de tools pelo MCP **DEVE** respeitar rigorosamente a FSM do board:
 - Agrupamento é permitido apenas em `GROUPING`.
 - Mutações em `ARCHIVED` são estritamente rejeitadas.
 
+### REQ-MCP-004: Descoberta e Acesso Padronizado na Interface Web
+A interface web **DEVE** disponibilizar um botão padronizado de MCP (`Bot` icon + "MCP" pill) tanto na tela inicial (`CreateBoardModal`) quanto na barra superior do board (`Header`). Ao ser acionado, a gaveta de telemetria MCP deve apresentar:
+- URL do endpoint MCP (`/mcp`).
+- Resource URIs contextualizados para o board atual ou modelo genérico.
+- Configuração JSON para Claude Desktop e Cursor com 1 clique de cópia.
+- Catálogo de ferramentas e instruções detalhadas de setup.
+
 ---
 
 ## 3. Cenários de Aceite (GIVEN / WHEN / THEN)
@@ -33,3 +40,8 @@ A execução de tools pelo MCP **DEVE** respeitar rigorosamente a FSM do board:
 - **WHEN** um agente de IA invoca a tool `create_card` com `board_id: "01HGW"`, `column_id: "col_action"`, `content: "Adicionar retry no worker de pagamentos"`, `is_action_item: true`
 - **THEN** o card é inserido no banco de dados com `is_ai_generated: true`
 - **AND** um evento WebSocket `CARD_CREATE` é transmitido em tempo real para todos os clientes conectados ao board.
+
+### Cenário: Usuário Acessa Configuração MCP na Interface
+- **GIVEN** que o usuário está na página inicial ou em uma retrospectiva ativa
+- **WHEN** clica no botão com ícone de Robô e rótulo "MCP"
+- **THEN** a gaveta de telemetria MCP é exibida com a URL `${origin}/mcp` e o snippet JSON formatado pronto para cópia.

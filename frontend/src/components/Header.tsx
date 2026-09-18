@@ -24,7 +24,8 @@ import {
   Bell,
   Sun,
   Moon,
-  Home
+  Home,
+  Bot
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
@@ -708,19 +709,20 @@ export const Header: React.FC<HeaderProps> = ({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
-                  background: 'var(--color-action-bg)',
-                  border: '1px solid var(--color-action-border)',
-                  color: 'var(--color-action)',
+                  gap: '0.35rem',
+                  background: 'var(--color-primary-subtle, rgba(99, 102, 241, 0.15))',
+                  border: '1px solid var(--border-primary, rgba(99, 102, 241, 0.35))',
+                  color: 'var(--color-primary)',
                   padding: '0.42rem 0.7rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: 'pointer',
                   transition: 'all var(--transition-fast)',
                 }}
                 title="Telemetria e Injeção de IA via MCP"
               >
+                <Bot size={14} />
                 <span>MCP</span>
               </button>
             )}
