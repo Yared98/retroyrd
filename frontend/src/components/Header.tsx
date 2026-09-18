@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
+import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { useTranslation } from 'react-i18next';
 
 interface HeaderProps {
@@ -232,6 +233,7 @@ export const Header: React.FC<HeaderProps> = ({
               }}>
                 {title}
               </h1>
+              <EcosystemSwitcher currentApp="retro" />
             </div>
           </div>
         </div>

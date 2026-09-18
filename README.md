@@ -1,6 +1,8 @@
-# 🛠️ Retroyrd (MVP)
+# 🛠️ Retroyrd
 
-Sistema de retrospectivas ágeis em tempo real, privado e auto-hospedado (**Zero Cost**), projetado para substituir ferramentas pagas como EasyRetro e contornar limitações de contas gratuitas (limite de boards, exportação e recursos bloqueados).
+**[🚀 Teste a Demonstração Online](https://retro.yared.com.br)**
+
+Um sistema moderno de retrospectivas ágeis em tempo real. Desenvolvido para ser uma alternativa robusta, privada e auto-hospedável a ferramentas como EasyRetro, o Retroyrd elimina restrições de contas gratuitas (como limite de boards, bloqueio de exportações e restrição de recursos).
 
 Projetado sob a metodologia **OpenSpec (Spec-Driven Development)** para orquestração com IAs e prototipado visualmente via **Stitch MCP**.
 
