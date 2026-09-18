@@ -260,7 +260,7 @@ export function App() {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '1rem',
-        background: 'var(--bg-canvas)',
+        background: 'transparent',
       }}>
         <div className="pulse-dot" style={{ width: 14, height: 14 }} />
         <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
@@ -275,7 +275,7 @@ export function App() {
   const isVoteLimitReached = board.max_votes_per_user > 0 && user_voted_card_ids.length >= board.max_votes_per_user;
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-canvas)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'transparent' }}>
       {/* Header com Stepper e Controles */}
       <Header
         title={board.title}

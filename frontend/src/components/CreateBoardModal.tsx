@@ -20,6 +20,9 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [maxVotes, setMaxVotes] = useState(5);
+  const [activeTab, setActiveTab] = useState<'create' | 'join'>('create');
+  const [joinCode, setJoinCode] = useState('');
+  const [joinToken, setJoinToken] = useState('');
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>(() => getRecentSessions());
   const [copiedSessionId, setCopiedSessionId] = useState<string | null>(null);
   const [sessionToDelete, setSessionToDelete] = useState<RecentSession | null>(null);
@@ -29,6 +32,17 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     if (title.trim()) {
       onCreate(title.trim(), maxVotes);
     }
+  };
+
+  const handleJoinSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!joinCode.trim()) return;
+    const cleanCode = joinCode.trim();
+    const cleanToken = joinToken.trim();
+    const targetUrl = cleanToken 
+      ? `/board/${cleanCode}?token=${encodeURIComponent(cleanToken)}`
+      : `/board/${cleanCode}`;
+    window.location.href = targetUrl;
   };
 
   const handleCopyInvite = (sessionId: string) => {
@@ -68,7 +82,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       alignItems: 'center',
       justifyContent: 'center',
       padding: '2rem 1.5rem',
-      background: 'var(--bg-canvas-radial, radial-gradient(circle at 50% 20%, #151d32 0%, var(--bg-canvas) 80%))',
+      background: 'transparent',
       position: 'relative',
       transition: 'background var(--transition-smooth)',
     }}>
@@ -155,138 +169,273 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         </a>
       </div>
 
-      <div className="glass-modal" style={{ maxWidth: 540, width: '100%', padding: '2.5rem' }}>
-        {/* Logo / Badge */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
-          <div style={{
-            background: 'var(--color-primary-subtle)',
-            border: '1px solid var(--border-primary)',
-            padding: '0.5rem',
-            borderRadius: 'var(--radius-md)',
-            display: 'flex',
-          }}>
-            <Sparkles size={24} color="var(--color-primary)" />
+      {/* Hero Header Outside Card */}
+      <div style={{ maxWidth: '480px', width: '100%', textAlign: 'center', marginBottom: '2rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '0.5rem 1rem', borderRadius: 'var(--radius-full)', marginBottom: '1rem' }}>
+          <div className="brand-icon-box">
+            <Sparkles size={18} />
           </div>
-          <div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--color-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              RETROYRD
-            </span>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '-0.02em' }}>
-              {t('create_board.title')}
-            </h1>
-          </div>
+          <span style={{ fontWeight: 800, fontSize: '1.25rem', letterSpacing: '-0.02em' }}>
+            RetroYrd
+          </span>
         </div>
 
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.2 }}>
+          {t('create_board.title')}
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9375rem', marginTop: '0.5rem' }}>
           {t('create_board.subtitle')}
         </p>
+      </div>
 
-        {/* Features em destaque */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            <Shield size={16} color="var(--color-went-well)" />
-            <span><strong>{t('create_board.feature_safety_title')}</strong> {t('create_board.feature_safety_desc')}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            <EyeOff size={16} color="var(--color-to-improve)" />
-            <span><strong>{t('create_board.feature_blind_title')}</strong> {t('create_board.feature_blind_desc')}</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            <Bot size={16} color="var(--color-action)" />
-            <span><strong>{t('create_board.feature_mcp_title')}</strong> {t('create_board.feature_mcp_desc')}</span>
-          </div>
-        </div>
-
-        {/* Formulário */}
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-              {t('create_board.session_name_label')}
-            </label>
-            <input
-              type="text"
-              autoFocus
-              required
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t('create_board.session_name_placeholder')}
-              style={{
-                width: '100%',
-                background: 'var(--bg-input)',
-                border: '1px solid var(--border-highlight)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.75rem 1rem',
-                color: 'var(--text-main)',
-                fontSize: '0.95rem',
-                outline: 'none',
-                transition: 'border-color var(--transition-fast)',
-              }}
-            />
-          </div>
-
-          {/* Seletor de Votos por Participante */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>
-                {t('create_board.vote_limit_label')}
-              </label>
-              <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>
-                {maxVotes === 0 ? t('create_board.no_limit') : `${maxVotes} ${t('create_board.votes_per_person')}`}
-              </span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
-              {voteOptions.map((opt) => {
-                const isSelected = maxVotes === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setMaxVotes(opt.value)}
-                    style={{
-                      background: isSelected ? 'var(--color-primary)' : 'var(--bg-subtle)',
-                      border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
-                      color: isSelected ? '#ffffff' : 'var(--text-muted)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '0.5rem 0.25rem',
-                      fontSize: '0.75rem',
-                      fontWeight: isSelected ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all var(--transition-fast)',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
+      {/* Glass Card */}
+      <div
+        style={{
+          background: 'var(--bg-surface)',
+          border: '1px solid var(--border-highlight)',
+          borderRadius: 'var(--radius-2xl)',
+          padding: '2rem',
+          maxWidth: '480px',
+          width: '100%',
+          boxShadow: 'var(--shadow-lg)',
+          backdropFilter: 'blur(20px)',
+        }}
+      >
+        {/* Navigation Tabs */}
+        <div
+          style={{
+            display: 'flex',
+            background: 'var(--bg-subtle)',
+            padding: '4px',
+            borderRadius: 'var(--radius-lg)',
+            marginBottom: '1.5rem',
+          }}
+        >
           <button
-            type="submit"
-            disabled={isCreating || !title.trim()}
+            type="button"
+            onClick={() => setActiveTab('create')}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              background: 'var(--color-primary)',
-              border: 'none',
-              color: '#ffffff',
-              padding: '0.85rem',
+              flex: 1,
+              padding: '0.5rem',
               borderRadius: 'var(--radius-md)',
-              fontSize: '0.95rem',
-              fontWeight: 700,
-              cursor: isCreating || !title.trim() ? 'not-allowed' : 'pointer',
-              opacity: isCreating || !title.trim() ? 0.6 : 1,
-              boxShadow: 'var(--shadow-sm)',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              background: activeTab === 'create' ? 'var(--color-primary)' : 'transparent',
+              color: activeTab === 'create' ? '#ffffff' : 'var(--text-muted)',
+              border: 'none',
+              cursor: 'pointer',
               transition: 'all var(--transition-fast)',
-              marginTop: '0.5rem',
             }}
           >
-            <span>{isCreating ? t('create_board.starting_session') : t('create_board.start_retro')}</span>
-            <ArrowRight size={16} />
+            {t('create_board.tab_create')}
           </button>
-        </form>
+          <button
+            type="button"
+            onClick={() => setActiveTab('join')}
+            style={{
+              flex: 1,
+              padding: '0.5rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              background: activeTab === 'join' ? 'var(--color-primary)' : 'transparent',
+              color: activeTab === 'join' ? '#ffffff' : 'var(--text-muted)',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all var(--transition-fast)',
+            }}
+          >
+            {t('create_board.tab_join')}
+          </button>
+        </div>
+
+        {activeTab === 'create' ? (
+          <>
+            {/* Features em destaque */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <Shield size={16} color="var(--color-went-well)" />
+                <span><strong>{t('create_board.feature_safety_title')}</strong> {t('create_board.feature_safety_desc')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <EyeOff size={16} color="var(--color-to-improve)" />
+                <span><strong>{t('create_board.feature_blind_title')}</strong> {t('create_board.feature_blind_desc')}</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                <Bot size={16} color="var(--color-action)" />
+                <span><strong>{t('create_board.feature_mcp_title')}</strong> {t('create_board.feature_mcp_desc')}</span>
+              </div>
+            </div>
+
+            {/* Formulário de Criação */}
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                  {t('create_board.session_name_label')}
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t('create_board.session_name_placeholder')}
+                  style={{
+                    width: '100%',
+                    background: 'var(--bg-input)',
+                    border: '1px solid var(--border-highlight)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '0.75rem 1rem',
+                    color: 'var(--text-main)',
+                    fontSize: '0.95rem',
+                    outline: 'none',
+                    transition: 'border-color var(--transition-fast)',
+                  }}
+                />
+              </div>
+
+              {/* Seletor de Votos por Participante */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)' }}>
+                    {t('create_board.vote_limit_label')}
+                  </label>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontWeight: 700 }}>
+                    {maxVotes === 0 ? t('create_board.no_limit') : `${maxVotes} ${t('create_board.votes_per_person')}`}
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
+                  {voteOptions.map((opt) => {
+                    const isSelected = maxVotes === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setMaxVotes(opt.value)}
+                        style={{
+                          background: isSelected ? 'var(--color-primary)' : 'var(--bg-subtle)',
+                          border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                          color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                          borderRadius: 'var(--radius-sm)',
+                          padding: '0.5rem 0.25rem',
+                          fontSize: '0.75rem',
+                          fontWeight: isSelected ? 700 : 500,
+                          cursor: 'pointer',
+                          transition: 'all var(--transition-fast)',
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isCreating || !title.trim()}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  background: 'var(--color-primary)',
+                  border: 'none',
+                  color: '#ffffff',
+                  padding: '0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  cursor: isCreating || !title.trim() ? 'not-allowed' : 'pointer',
+                  opacity: isCreating || !title.trim() ? 0.6 : 1,
+                  boxShadow: 'var(--shadow-sm)',
+                  transition: 'all var(--transition-fast)',
+                  marginTop: '0.5rem',
+                }}
+              >
+                <span>{isCreating ? t('create_board.starting_session') : t('create_board.start_retro')}</span>
+                <ArrowRight size={16} />
+              </button>
+            </form>
+          </>
+        ) : (
+          /* Formulário de Entrada */
+          <form onSubmit={handleJoinSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                {t('create_board.join_code_label')}
+              </label>
+              <input
+                type="text"
+                autoFocus
+                required
+                value={joinCode}
+                onChange={(e) => setJoinCode(e.target.value)}
+                placeholder={t('create_board.join_code_placeholder')}
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-highlight)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.75rem 1rem',
+                  color: 'var(--text-main)',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  transition: 'border-color var(--transition-fast)',
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                {t('create_board.join_token_label')}
+              </label>
+              <input
+                type="text"
+                value={joinToken}
+                onChange={(e) => setJoinToken(e.target.value)}
+                placeholder={t('create_board.join_token_placeholder')}
+                style={{
+                  width: '100%',
+                  background: 'var(--bg-input)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '0.75rem 1rem',
+                  color: 'var(--text-main)',
+                  fontSize: '0.95rem',
+                  outline: 'none',
+                  transition: 'border-color var(--transition-fast)',
+                }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={!joinCode.trim()}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                background: 'var(--color-primary)',
+                border: 'none',
+                color: '#ffffff',
+                padding: '0.85rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                cursor: !joinCode.trim() ? 'not-allowed' : 'pointer',
+                opacity: !joinCode.trim() ? 0.6 : 1,
+                boxShadow: 'var(--shadow-sm)',
+                transition: 'all var(--transition-fast)',
+                marginTop: '0.5rem',
+              }}
+            >
+              <span>{t('create_board.join_btn')}</span>
+              <ArrowRight size={16} />
+            </button>
+          </form>
+        )}
 
         {/* Histórico de Sessões Recentes (Facilitador) */}
         {facilitatorSessions.length > 0 && (
@@ -460,7 +609,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       </div>
 
       {/* Rodapé com créditos */}
-      <Footer style={{ borderTop: 'none', marginTop: '1.25rem', width: '100%', maxWidth: 540 }} />
+      <Footer style={{ borderTop: 'none', marginTop: '2.5rem', width: '100%', maxWidth: '480px' }} />
 
       {/* Modal de Confirmação de Exclusão de Sessão */}
       {sessionToDelete && (
