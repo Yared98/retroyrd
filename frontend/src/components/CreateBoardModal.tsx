@@ -68,7 +68,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       alignItems: 'center',
       justifyContent: 'center',
       padding: '2rem 1.5rem',
-      background: 'var(--bg-canvas)',
+      background: 'var(--bg-canvas-radial, radial-gradient(circle at 50% 20%, #151d32 0%, var(--bg-canvas) 80%))',
       position: 'relative',
       transition: 'background var(--transition-smooth)',
     }}>

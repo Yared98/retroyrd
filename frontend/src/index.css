@@ -9,6 +9,7 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
   --radius-full: 9999px;
 
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -17,28 +18,28 @@
 
 /* ==========================================================================
    TEMA ESCURO (Padrão e data-theme="dark")
-   Focado em profundidade Slate/Zinc elegante, sem saturação ou neon clichê
+   Design System "Agile Cadence" - Profundidade Slate/Obsidian
    ========================================================================== */
 :root,
 [data-theme="dark"] {
-  --bg-canvas: #0b0f17;
-  --bg-surface: #131823;
-  --bg-surface-elevated: #1a2230;
-  --bg-card: #151c28;
-  --bg-card-hover: #1c2536;
+  --bg-canvas: #090d16;
+  --bg-surface: #0f172a;
+  --bg-surface-elevated: #1e293b;
+  --bg-card: rgba(30, 41, 59, 0.7);
+  --bg-card-hover: rgba(30, 41, 59, 0.95);
   --bg-subtle: rgba(255, 255, 255, 0.04);
   --bg-subtle-hover: rgba(255, 255, 255, 0.08);
-  --bg-input: #0e131d;
-  --bg-header: rgba(11, 15, 23, 0.88);
+  --bg-input: #0b1120;
+  --bg-header: rgba(9, 13, 22, 0.85);
 
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.15);
-  --border-primary: rgba(99, 102, 241, 0.4);
+  --border-highlight: rgba(255, 255, 255, 0.16);
+  --border-primary: rgba(99, 102, 241, 0.45);
 
   --color-primary: #6366f1;
   --color-primary-hover: #4f46e5;
-  --color-primary-subtle: rgba(99, 102, 241, 0.12);
-  --color-primary-glow: rgba(99, 102, 241, 0.25);
+  --color-primary-subtle: rgba(99, 102, 241, 0.15);
+  --color-primary-glow: rgba(99, 102, 241, 0.3);
 
   --color-went-well: #10b981;
   --color-went-well-bg: rgba(16, 185, 129, 0.08);
@@ -63,15 +64,18 @@
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 12px 30px -4px rgba(0, 0, 0, 0.65);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px -2px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.75);
   --shadow-elevated: 0 20px 40px -10px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 24px rgba(99, 102, 241, 0.35);
+
+  --bg-canvas-radial: radial-gradient(circle at 50% 20%, #151d32 0%, var(--bg-canvas) 80%);
 
   --cluster-bg: rgba(99, 102, 241, 0.07);
   --cluster-border: rgba(99, 102, 241, 0.25);
 
-  --scrollbar-track: #0b0f17;
+  --scrollbar-track: #090d16;
   --scrollbar-thumb: rgba(255, 255, 255, 0.15);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.25);
 }
@@ -129,6 +133,8 @@
   --shadow-lg: 0 10px 24px -3px rgba(0, 0, 0, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.04);
   --shadow-elevated: 0 20px 35px -5px rgba(0, 0, 0, 0.1), 0 8px 16px -6px rgba(0, 0, 0, 0.05);
 
+  --bg-canvas-radial: radial-gradient(circle at 50% 20%, #e0e7ff 0%, var(--bg-canvas) 80%);
+
   --cluster-bg: #eef2ff;
   --cluster-border: #c7d2fe;
 
@@ -164,12 +170,12 @@ body {
 }
 
 .glass-modal {
-  background: var(--bg-surface-elevated);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-highlight);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-elevated);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-lg);
 }
 
 /* Pulse badge com indicador limpo */
