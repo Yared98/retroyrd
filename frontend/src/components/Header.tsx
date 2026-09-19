@@ -27,7 +27,6 @@ import {
   Bot,
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
-import { GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { useTranslation } from 'react-i18next';
 import { copyToClipboard } from '../utils/clipboard';
@@ -379,32 +378,6 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="header-btn-text">{theme === 'dark' ? t('header.btn_light') : t('header.btn_dark')}</span>
             </button>
           )}
-
-          {/* Divisor vertical */}
-          <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 0.15rem' }} />
-
-          {/* Link para GitHub do Projeto */}
-          <a
-            href="https://github.com/Yared98/retroyrd"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'var(--bg-subtle)',
-              border: '1px solid var(--border-subtle)',
-              color: 'var(--text-muted)',
-              padding: '0.35rem 0.55rem',
-              borderRadius: 'var(--radius-md)',
-              textDecoration: 'none',
-            }}
-            className="footer-badge-link"
-            title={t('header.tooltip_github')}
-            aria-label="GitHub"
-          >
-            <GithubIcon size={14} />
-          </a>
         </div>
       </header>
 
