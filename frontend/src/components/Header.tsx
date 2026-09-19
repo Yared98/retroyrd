@@ -30,6 +30,7 @@ import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { useTranslation } from 'react-i18next';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface HeaderProps {
   title: string;
@@ -168,16 +169,20 @@ export const Header: React.FC<HeaderProps> = ({
   const prevPhaseObj = currentPhaseIndex > 0 ? phasesList[currentPhaseIndex - 1] : undefined;
   const nextPhaseObj = phasesList[currentPhaseIndex + 1];
 
-  const handleCopyLink = () => {
+  const handleCopyLink = async () => {
+    let inviteUrl = window.location.href;
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete('token');
-      navigator.clipboard.writeText(url.toString());
+      inviteUrl = url.toString();
     } catch {
-      navigator.clipboard.writeText(window.location.href);
+      // fallback to current url
     }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const success = await copyToClipboard(inviteUrl);
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   const isTimerFinished = localSeconds === 0;

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Bot, Sparkles, Send, Copy, Check, Terminal, Shield, Key } from 'lucide-react';
 import type { BoardStateSnapshot } from '../types';
 import { useTranslation, Trans } from 'react-i18next';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface McpTelemetryDrawerProps {
   isOpen: boolean;
@@ -23,12 +24,8 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
   const [copiedUri, setCopiedUri] = useState(false);
   const [copiedConfig, setCopiedConfig] = useState(false);
   const [mcpLogs, setMcpLogs] = useState<string[]>([
-    'MCP Server listening on /mcp',
-    'Registered Resource: retro://board/{id}/state',
-    'Registered Resource: retro://board/{id}/metrics',
-    'Registered Tool: create_card (bidirectional write)',
-    'Registered Tool: group_cards (requires facilitator_token)',
-    'Registered Tool: change_phase (requires facilitator_token)',
+    'MCP Server listening at /mcp (JSON-RPC 2.0)',
+    'SSE Channel ready for streaming telemetry',
   ]);
 
   const { t } = useTranslation();
@@ -36,16 +33,20 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
   if (!isOpen) return null;
   if (typeof document === 'undefined') return null;
 
-  const mcpServerUrl = `${window.location.origin}/mcp`;
-  const resourceUri = snapshot?.board?.id
-    ? `retro://board/${snapshot.board.id}/state${snapshot.is_facilitator && facilitatorToken ? `?token=${facilitatorToken}` : ''}`
-    : `retro://board/{board_id}/state`;
+  const baseUrl = window.location.origin;
+  const mcpServerUrl = `${baseUrl}/mcp`;
+  const resourceUri = `retro://${snapshot?.board?.id || 'current'}`;
 
   const jsonConfigSnippet = JSON.stringify(
     {
       mcpServers: {
         retroyrd: {
           url: mcpServerUrl,
+          headers: facilitatorToken
+            ? {
+                Authorization: `Bearer ${facilitatorToken}`,
+              }
+            : {},
         },
       },
     },
@@ -53,13 +54,11 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
     2
   );
 
-  const copyToClipboard = (text: string, setCopiedState: (v: boolean) => void) => {
-    try {
-      navigator.clipboard.writeText(text);
+  const copyWithFeedback = async (text: string, setCopiedState: (v: boolean) => void) => {
+    const success = await copyToClipboard(text);
+    if (success) {
       setCopiedState(true);
       setTimeout(() => setCopiedState(false), 2000);
-    } catch {
-      // Fallback
     }
   };
 
@@ -254,7 +253,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 }}
               />
               <button
-                onClick={() => copyToClipboard(mcpServerUrl, setCopiedUrl)}
+                onClick={() => copyWithFeedback(mcpServerUrl, setCopiedUrl)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -299,7 +298,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 }}
               />
               <button
-                onClick={() => copyToClipboard(resourceUri, setCopiedUri)}
+                onClick={() => copyWithFeedback(resourceUri, setCopiedUri)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -335,7 +334,7 @@ export const McpTelemetryDrawer: React.FC<McpTelemetryDrawerProps> = ({
                 {t('mcp_drawer.json_config')}
               </span>
               <button
-                onClick={() => copyToClipboard(jsonConfigSnippet, setCopiedConfig)}
+                onClick={() => copyWithFeedback(jsonConfigSnippet, setCopiedConfig)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

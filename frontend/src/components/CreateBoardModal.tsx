@@ -5,6 +5,7 @@ import { Footer, GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { McpTelemetryDrawer } from './McpTelemetryDrawer';
 import { useTranslation } from 'react-i18next';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
@@ -47,11 +48,13 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     window.location.href = targetUrl;
   };
 
-  const handleCopyInvite = (sessionId: string) => {
+  const handleCopyInvite = async (sessionId: string) => {
     const url = `${window.location.origin}/board/${sessionId}`;
-    navigator.clipboard.writeText(url);
-    setCopiedSessionId(sessionId);
-    setTimeout(() => setCopiedSessionId(null), 2000);
+    const success = await copyToClipboard(url);
+    if (success) {
+      setCopiedSessionId(sessionId);
+      setTimeout(() => setCopiedSessionId(null), 2000);
+    }
   };
 
   const handleRemoveSession = (sessionId: string) => {
