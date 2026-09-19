@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, ShieldCheck, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle, Globe } from 'lucide-react';
+import { Shield, ShieldCheck, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle, Globe } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 import { Footer, GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
@@ -206,8 +206,8 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
       }}>
         {/* Hero Header Outside Card */}
         <div style={{ maxWidth: '480px', width: '100%', textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'var(--color-primary-subtle)', border: '1px solid var(--border-primary)', padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)', marginBottom: '1rem', color: 'var(--color-primary)', fontSize: '0.8rem', fontWeight: 700 }}>
-            <Sparkles size={14} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'var(--bg-subtle)', border: '1px solid var(--border-subtle)', padding: '0.35rem 0.85rem', borderRadius: 'var(--radius-full)', marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.8rem', fontWeight: 600 }}>
+            <ShieldCheck size={14} color="var(--color-primary)" />
             <span>RetroYrd</span>
           </div>
 
@@ -232,7 +232,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
           backdropFilter: 'blur(20px)',
         }}
       >
-        {/* Navigation Tabs */}
+        {/* Navigation Tabs (Segmented Control) */}
         <div
           style={{
             display: 'flex',
@@ -240,6 +240,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
             padding: '4px',
             borderRadius: 'var(--radius-lg)',
             marginBottom: '1.5rem',
+            border: '1px solid var(--border-subtle)',
           }}
         >
           <button
@@ -251,9 +252,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               borderRadius: 'var(--radius-md)',
               fontSize: '0.875rem',
               fontWeight: 600,
-              background: activeTab === 'create' ? 'var(--color-primary)' : 'transparent',
-              color: activeTab === 'create' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
+              background: activeTab === 'create' ? 'var(--bg-surface-elevated, var(--bg-surface))' : 'transparent',
+              color: activeTab === 'create' ? 'var(--text-main)' : 'var(--text-muted)',
+              border: activeTab === 'create' ? '1px solid var(--border-highlight)' : '1px solid transparent',
+              boxShadow: activeTab === 'create' ? 'var(--shadow-sm)' : 'none',
               cursor: 'pointer',
               transition: 'all var(--transition-fast)',
             }}
@@ -269,9 +271,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
               borderRadius: 'var(--radius-md)',
               fontSize: '0.875rem',
               fontWeight: 600,
-              background: activeTab === 'join' ? 'var(--color-primary)' : 'transparent',
-              color: activeTab === 'join' ? '#ffffff' : 'var(--text-muted)',
-              border: 'none',
+              background: activeTab === 'join' ? 'var(--bg-surface-elevated, var(--bg-surface))' : 'transparent',
+              color: activeTab === 'join' ? 'var(--text-main)' : 'var(--text-muted)',
+              border: activeTab === 'join' ? '1px solid var(--border-highlight)' : '1px solid transparent',
+              boxShadow: activeTab === 'join' ? 'var(--shadow-sm)' : 'none',
               cursor: 'pointer',
               transition: 'all var(--transition-fast)',
             }}
@@ -344,14 +347,15 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                         type="button"
                         onClick={() => setMaxVotes(opt.value)}
                         style={{
-                          background: isSelected ? 'var(--color-primary)' : 'var(--bg-subtle)',
-                          border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--border-subtle)',
-                          color: isSelected ? '#ffffff' : 'var(--text-muted)',
+                          background: isSelected ? 'var(--color-primary-subtle)' : 'var(--bg-subtle)',
+                          border: isSelected ? '1.5px solid var(--color-primary)' : '1px solid var(--border-subtle)',
+                          color: isSelected ? 'var(--color-primary)' : 'var(--text-muted)',
                           borderRadius: 'var(--radius-sm)',
                           padding: '0.5rem 0.25rem',
                           fontSize: '0.75rem',
                           fontWeight: isSelected ? 700 : 500,
                           cursor: 'pointer',
+                          boxShadow: isSelected ? '0 0 10px var(--color-primary-glow)' : 'none',
                           transition: 'all var(--transition-fast)',
                         }}
                       >
