@@ -25,6 +25,7 @@ import {
   Sun,
   Moon,
   Bot,
+  Users,
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
@@ -40,6 +41,8 @@ interface HeaderProps {
   timerEndsAt?: number | null;
   maxVotesPerUser?: number;
   userVotedCount?: number;
+  onlineCount?: number;
+  isConnected?: boolean;
   theme?: 'light' | 'dark';
   onToggleTheme?: () => void;
   onControlTimer?: (action: 'START' | 'PAUSE' | 'ADD_SECONDS' | 'RESET', seconds?: number) => void;
@@ -69,6 +72,8 @@ export const Header: React.FC<HeaderProps> = ({
   timerEndsAt,
   maxVotesPerUser = 5,
   userVotedCount = 0,
+  onlineCount = 1,
+  isConnected = true,
   theme = 'dark',
   onToggleTheme,
   onControlTimer,
@@ -285,6 +290,67 @@ export const Header: React.FC<HeaderProps> = ({
             {copied ? <Check size={14} color="var(--color-went-well)" /> : <Share2 size={14} />}
             <span className="header-btn-text">{copied ? t('header.btn_copied') : t('header.btn_invite')}</span>
           </button>
+
+          {/* Indicador de Presença Online */}
+          {isConnected ? (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.28rem 0.65rem',
+                backgroundColor: 'var(--color-success-bg, rgba(16, 185, 129, 0.12))',
+                border: '1px solid var(--color-success-border, rgba(16, 185, 129, 0.25))',
+                borderRadius: 'var(--radius-full, 9999px)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'var(--color-went-well, #10b981)',
+              }}
+              title={`${onlineCount} ${t('header.online_count', 'online')}`}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-went-well, #10b981)',
+                  display: 'inline-block',
+                }}
+                className="animate-pulse"
+              />
+              <Users size={12} />
+              <span>{onlineCount} {t('header.online_count', 'online')}</span>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.28rem 0.65rem',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: 'var(--radius-full, 9999px)',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: '#f59e0b',
+              }}
+              title={t('header.reconnecting', 'Reconectando...')}
+            >
+              <span
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  borderRadius: '50%',
+                  backgroundColor: '#f59e0b',
+                  display: 'inline-block',
+                }}
+                className="animate-pulse"
+              />
+              <Users size={12} />
+              <span>{t('header.reconnecting', 'Reconectando...')}</span>
+            </div>
+          )}
 
           {/* Exportar Markdown */}
           <button

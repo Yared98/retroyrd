@@ -132,6 +132,8 @@ pub struct BoardStateSnapshot {
     pub user_voted_card_ids: Vec<String>,
     pub is_facilitator: bool,
     pub session_hash: String,
+    #[serde(default)]
+    pub online_count: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

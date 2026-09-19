@@ -72,8 +72,10 @@ async fn handle_socket(
     let room_sender = state.get_room_sender(&board_id);
     let mut room_receiver = room_sender.subscribe();
 
-    // 1. Enviar estado inicial sincronizado (Snapshot)
-    if let Ok(snapshot) = build_snapshot(&state, &board_id, &session_hash, is_facilitator) {
+    let online_count = room_sender.receiver_count();
+
+    // 1. Enviar estado inicial sincronizado (Snapshot) com a contagem atual
+    if let Ok(snapshot) = build_snapshot(&state, &board_id, &session_hash, is_facilitator, online_count) {
         let sync_msg = WsMessage {
             msg_type: "SYNC_STATE".to_string(),
             payload: json!(snapshot),
@@ -83,6 +85,14 @@ async fn handle_socket(
             let _ = ws_sender.send(Message::Text(text.into())).await;
         }
     }
+
+    // 1.1 Notificar os outros membros da sala sobre o novo participante conectado
+    let presence_msg = WsMessage {
+        msg_type: "PRESENCE_UPDATE".to_string(),
+        payload: json!({ "online_count": online_count }),
+        timestamp: chrono_or_now(),
+    };
+    let _ = room_sender.send(presence_msg);
 
     // 2. Tarefa para receber mensagens do broadcast da sala e enviar para este cliente WebSocket
     // Inclui heartbeat ping a cada 30s para evitar timeout de inatividade em proxies reversos (ex: Cloudflare Tunnel)
@@ -153,6 +163,14 @@ async fn handle_socket(
         _ = (&mut recv_task) => send_task.abort(),
     }
 
+    let remaining_count = room_sender.receiver_count();
+    let presence_msg = WsMessage {
+        msg_type: "PRESENCE_UPDATE".to_string(),
+        payload: json!({ "online_count": remaining_count }),
+        timestamp: chrono_or_now(),
+    };
+    let _ = room_sender.send(presence_msg);
+
     info!(board_id = %board_id, "Cliente WebSocket desconectado");
 }
 
@@ -212,6 +230,7 @@ pub fn build_snapshot(
     board_id: &str,
     session_hash: &str,
     is_facilitator: bool,
+    online_count: usize,
 ) -> Result<BoardStateSnapshot, String> {
     let board = state
         .db
@@ -255,6 +274,7 @@ pub fn build_snapshot(
         user_voted_card_ids,
         is_facilitator,
         session_hash: session_hash.to_string(),
+        online_count,
     })
 }
 

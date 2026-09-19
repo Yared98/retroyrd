@@ -286,6 +286,8 @@ export function App() {
         timerEndsAt={board.timer_ends_at}
         maxVotesPerUser={board.max_votes_per_user}
         userVotedCount={user_voted_card_ids.length}
+        onlineCount={snapshot.online_count}
+        isConnected={isConnected}
         theme={theme}
         onToggleTheme={toggleTheme}
         onControlTimer={(action, seconds) => {

@@ -46,6 +46,14 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
           const msg: WsMessage = JSON.parse(event.data);
           if (msg.type === 'SYNC_STATE') {
             setSnapshot(msg.payload);
+          } else if (msg.type === 'PRESENCE_UPDATE') {
+            setSnapshot((prev) => {
+              if (!prev) return null;
+              return {
+                ...prev,
+                online_count: msg.payload?.online_count ?? prev.online_count,
+              };
+            });
           } else if (msg.type === 'ROOM_STATE_UPDATED') {
             setSnapshot((prev) => {
               if (!prev) return null;

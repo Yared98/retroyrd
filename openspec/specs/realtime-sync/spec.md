@@ -29,6 +29,7 @@ O servidor **DEVE** suportar os seguintes tipos de evento:
 - `ACTION_CREATE`: Criação de item de ação manual ou via IA (fase `ACTION_ITEMS`).
 - `ACTION_UPDATE`: Atualização de status do item de ação (fase `ACTION_ITEMS`).
 - `PHASE_CHANGE`: Avanço de fase pelo facilitador.
+- `PRESENCE_UPDATE`: Notificação broadcast de atualização de contagem anônima de clientes WebSocket conectados na sala (`online_count`).
 
 ### REQ-RT-003: Isolamento por Sala (Board Channel)
 O Event Broker no backend **DEVE** manter canais broadcast isolados para cada `board_id`. Uma mutação em uma sala nunca deve ser enviada para conexões de outros boards.
@@ -40,4 +41,9 @@ O Event Broker no backend **DEVE** manter canais broadcast isolados para cada `b
 ### Cenário: Conexão e Snapshot Inicial
 - **GIVEN** que um cliente conecta ao endpoint `/ws/board/{boardId}`
 - **WHEN** o handshake WebSocket é concluído
-- **THEN** o servidor envia imediatamente a mensagem `SYNC_STATE` contendo a fase atual, as colunas, os cards (com o devido mascaramento de Brainstorm) e o resumo de votos/safety checks.
+- **THEN** o servidor envia imediatamente a mensagem `SYNC_STATE` contendo a fase atual, as colunas, os cards (com o devido mascaramento de Brainstorm), a contagem atual de conexões online (`online_count`) e o resumo de votos/safety checks.
+
+### Cenário: Entrada ou Saída de Participantes (Presença em Tempo Real)
+- **GIVEN** que clientes estão conectados na sala `/ws/board/{boardId}`
+- **WHEN** uma nova conexão é aceita ou uma conexão existente é encerrada
+- **THEN** o servidor emite uma mensagem broadcast `PRESENCE_UPDATE` com a contagem atualizada de clientes ativos na sala (`online_count`), garantindo anonimato absoluto sem expor identificadores dos participantes.

@@ -38,6 +38,8 @@ export default {
       lang_pt: 'PT',
       lang_en: 'EN',
       tooltip_lang: 'Mudar idioma',
+      online_count: 'online',
+      reconnecting: 'Reconectando...',
     },
     footer: {
       developed_by: 'Desenvolvido por',

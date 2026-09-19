@@ -71,6 +71,7 @@ export interface BoardStateSnapshot {
   user_voted_card_ids: string[];
   is_facilitator: boolean;
   session_hash: string;
+  online_count?: number;
 }
 
 export interface WsMessage {
