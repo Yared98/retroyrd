@@ -184,10 +184,10 @@ export const Header: React.FC<HeaderProps> = ({
   const isTimerFinished = localSeconds === 0;
 
   return (
-    <header className="retro-header">
-      <div className="retro-header-grid">
-        {/* Lado Esquerdo: Marca, Título & Status */}
-        <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+    <>
+      <header className="app-header">
+        {/* Left: Brand, Ecosystem Switcher, Board Title & Facilitator Badge */}
+        <div className="header-left" style={{ gap: '0.65rem' }}>
           <a
             href="/"
             onClick={(e) => {
@@ -212,25 +212,25 @@ export const Header: React.FC<HeaderProps> = ({
 
           <div
             style={{
-              height: '24px',
+              height: '20px',
               width: '1px',
               backgroundColor: 'var(--border-subtle)',
+              margin: '0 0.15rem',
               flexShrink: 0,
             }}
           />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-            <span className="pulse-dot" title="Sessão em tempo real" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0, maxWidth: '140px' }}>
+            <span className="pulse-dot" title="Sessão em tempo real" style={{ flexShrink: 0 }} />
             <h1
               style={{
-                fontSize: '1.05rem',
+                fontSize: '0.925rem',
                 fontWeight: 700,
                 color: 'var(--text-main)',
-                letterSpacing: '-0.01em',
                 margin: 0,
+                whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
               }}
               title={title}
             >
@@ -239,15 +239,15 @@ export const Header: React.FC<HeaderProps> = ({
             {isFacilitator && (
               <span
                 style={{
-                  background: 'var(--color-facilitator-bg)',
-                  color: 'var(--color-facilitator)',
-                  fontSize: '0.65rem',
+                  fontSize: '0.625rem',
                   fontWeight: 800,
-                  padding: '0.12rem 0.5rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--color-facilitator-border)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.04em',
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'var(--color-facilitator-bg)',
+                  border: '1px solid var(--color-facilitator-border)',
+                  color: 'var(--color-facilitator)',
                   flexShrink: 0,
                 }}
               >
@@ -257,17 +257,179 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Centro: Stepper das Fases do FSM */}
-        <div className="header-stepper">
-          <div style={{
+        {/* Right: Tools & Utilities */}
+        <div className="header-right" style={{ gap: '0.4rem' }}>
+          {/* Botão Compartilhar */}
+          <button
+            onClick={handleCopyLink}
+            className="btn-secondary"
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              borderRadius: 'var(--radius-md)',
+              cursor: 'pointer',
+            }}
+            title={t('header.tooltip_invite')}
+          >
+            {copied ? <Check size={14} color="var(--color-went-well)" /> : <Share2 size={14} />}
+            <span className="header-btn-text">{copied ? t('header.btn_copied') : t('header.btn_invite')}</span>
+          </button>
+
+          {/* Exportar Markdown */}
+          <button
+            onClick={onExport}
+            className="btn-secondary"
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.78rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              borderRadius: 'var(--radius-md)',
+              cursor: 'pointer',
+            }}
+            title={t('header.tooltip_export')}
+          >
+            <Download size={14} />
+            <span className="header-btn-text">{t('header.btn_export')}</span>
+          </button>
+
+          {/* Botão de Telemetria MCP */}
+          {onToggleTelemetry && (
+            <button
+              onClick={onToggleTelemetry}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: 'var(--color-primary-subtle, rgba(99, 102, 241, 0.15))',
+                border: '1px solid var(--border-primary, rgba(99, 102, 241, 0.35))',
+                color: 'var(--color-primary)',
+                padding: '0.35rem 0.65rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+              title="Telemetria e Injeção de IA via MCP"
+            >
+              <Bot size={13} />
+              <span>MCP</span>
+            </button>
+          )}
+
+          {/* Alternador de Idioma */}
+          <button
+            onClick={() => i18n.changeLanguage(i18n.language.startsWith('pt') ? 'en' : 'pt')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.3rem',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-main)',
+              padding: '0.35rem 0.55rem',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              minWidth: '36px',
+            }}
+            title={t('header.tooltip_lang')}
+          >
+            {i18n.language.startsWith('pt') ? t('header.lang_en') : t('header.lang_pt')}
+          </button>
+
+          {/* Alternador de Modo Claro / Escuro */}
+          {onToggleTheme && (
+            <button
+              onClick={onToggleTheme}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-main)',
+                padding: '0.35rem 0.55rem',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+              title={theme === 'dark' ? t('header.tooltip_light') : t('header.tooltip_dark')}
+            >
+              {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="var(--color-primary)" />}
+              <span className="header-btn-text">{theme === 'dark' ? t('header.btn_light') : t('header.btn_dark')}</span>
+            </button>
+          )}
+
+          {/* Divisor vertical */}
+          <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 0.15rem' }} />
+
+          {/* Link para GitHub do Projeto */}
+          <a
+            href="https://github.com/Yared98/retroyrd"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-muted)',
+              padding: '0.35rem 0.55rem',
+              borderRadius: 'var(--radius-md)',
+              textDecoration: 'none',
+            }}
+            className="footer-badge-link"
+            title={t('header.tooltip_github')}
+            aria-label="GitHub"
+          >
+            <GithubIcon size={14} />
+          </a>
+        </div>
+      </header>
+
+      {/* Tier 2: Workflow Bar (Stepper + Ritual Controls) */}
+      <div className="session-sub-header">
+        {/* Left: Stepper das Fases do FSM */}
+        <div
+          style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.3rem',
-            background: 'var(--bg-subtle)',
-            border: '1px solid var(--border-subtle)',
-            padding: '0.25rem 0.35rem',
-            borderRadius: 'var(--radius-full)',
-          }}>
+            gap: '0.35rem',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            minWidth: 0,
+            flex: 1,
+          }}
+        >
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              background: 'var(--bg-subtle)',
+              border: '1px solid var(--border-subtle)',
+              padding: '0.2rem 0.35rem',
+              borderRadius: 'var(--radius-full)',
+              flexShrink: 0,
+            }}
+          >
             {phasesList.map((p, idx) => {
               const isCurrent = p.key === phase;
               const isDone = idx < currentPhaseIndex;
@@ -280,10 +442,10 @@ export const Header: React.FC<HeaderProps> = ({
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.35rem',
-                    padding: isCurrent ? '0.35rem 0.75rem' : '0.35rem 0.55rem',
+                    gap: '0.3rem',
+                    padding: isCurrent ? '0.25rem 0.65rem' : '0.25rem 0.45rem',
                     borderRadius: 'var(--radius-full)',
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     fontWeight: isCurrent ? 700 : 500,
                     color: isCurrent ? '#ffffff' : isDone ? 'var(--color-went-well)' : 'var(--text-dim)',
                     background: isCurrent ? 'var(--color-primary)' : 'transparent',
@@ -293,11 +455,11 @@ export const Header: React.FC<HeaderProps> = ({
                     cursor: 'default',
                   }}
                 >
-                  {isDone ? <CheckCircle2 size={14} color="var(--color-went-well)" /> : <Icon size={14} />}
+                  {isDone ? <CheckCircle2 size={13} color="var(--color-went-well)" /> : <Icon size={13} />}
                   {isCurrent ? (
                     <span>{p.label}</span>
                   ) : (
-                    <span style={{ opacity: 0.85, fontSize: '0.7rem' }}>{idx + 1}</span>
+                    <span style={{ opacity: 0.85, fontSize: '0.68rem' }}>{idx + 1}</span>
                   )}
                 </div>
               );
@@ -305,102 +467,136 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Lado Direito: Wrapper de Ações e Controles */}
-        <div className="header-actions">
-          {/* Controles Primários: Votação, Timer, Avançar Fase */}
-          <div className="header-primary-controls">
-            {/* Cápsula de Cota de Votos (exibida exclusivamente na fase de VOTING) */}
-            {phase === 'VOTING' && (
-              <div style={{
+        {/* Right: Votação, Timer, Avançar Fase */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+          {/* Cápsula de Cota de Votos (exibida exclusivamente na fase de VOTING) */}
+          {phase === 'VOTING' && (
+            <div
+              style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
-                background: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? 'var(--color-to-improve-bg)' : 'var(--color-primary-subtle)',
-                border: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? '1px solid var(--color-to-improve-border)' : '1px solid var(--border-primary)',
-                padding: '0.35rem 0.75rem',
+                gap: '0.35rem',
+                background:
+                  maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser
+                    ? 'var(--color-to-improve-bg)'
+                    : 'var(--color-primary-subtle)',
+                border:
+                  maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser
+                    ? '1px solid var(--color-to-improve-border)'
+                    : '1px solid var(--border-primary)',
+                padding: '0.25rem 0.6rem',
                 borderRadius: 'var(--radius-full)',
-                color: maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser ? 'var(--color-to-improve)' : 'var(--color-primary)',
-                fontSize: '0.75rem',
+                color:
+                  maxVotesPerUser > 0 && userVotedCount >= maxVotesPerUser
+                    ? 'var(--color-to-improve)'
+                    : 'var(--color-primary)',
+                fontSize: '0.72rem',
                 fontWeight: 700,
                 whiteSpace: 'nowrap',
-              }}>
-                <Vote size={14} />
-                <span>
-                  {maxVotesPerUser === 0 
-                    ? t('header.votes_unlimited', { count: userVotedCount }) 
-                    : t('header.votes_count', { voted: userVotedCount, max: maxVotesPerUser })}
-                </span>
+              }}
+            >
+              <Vote size={13} />
+              <span>
+                {maxVotesPerUser === 0
+                  ? t('header.votes_unlimited', { count: userVotedCount })
+                  : t('header.votes_count', { voted: userVotedCount, max: maxVotesPerUser })}
+              </span>
 
-                {isFacilitator && onUpdateVoteLimit && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: '0.2rem', borderLeft: '1px solid var(--border-primary)', paddingLeft: '0.4rem' }}>
-                    <button 
-                      onClick={() => onUpdateVoteLimit(Math.max(0, maxVotesPerUser - 1))}
-                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0.1rem', display: 'flex', alignItems: 'center' }}
-                      title={t('header.decrease_votes', 'Diminuir limite de votos')}
-                    >
-                      <Minus size={12} />
-                    </button>
-                    <button 
-                      onClick={() => onUpdateVoteLimit(maxVotesPerUser + 1)}
-                      style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: '0.1rem', display: 'flex', alignItems: 'center' }}
-                      title={t('header.increase_votes', 'Aumentar limite de votos')}
-                    >
-                      <Plus size={12} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
+              {isFacilitator && onUpdateVoteLimit && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.15rem',
+                    marginLeft: '0.2rem',
+                    borderLeft: '1px solid var(--border-primary)',
+                    paddingLeft: '0.35rem',
+                  }}
+                >
+                  <button
+                    onClick={() => onUpdateVoteLimit(Math.max(0, maxVotesPerUser - 1))}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title={t('header.decrease_votes', 'Diminuir limite de votos')}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <button
+                    onClick={() => onUpdateVoteLimit(maxVotesPerUser + 1)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'inherit',
+                      cursor: 'pointer',
+                      padding: '0.1rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title={t('header.increase_votes', 'Aumentar limite de votos')}
+                  >
+                    <Plus size={11} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-            {/* Timer Capsule Sincronizado */}
-            <div style={{ position: 'relative' }} ref={timerMenuRef}>
-              <div 
-                onClick={() => {
-                  if (isFacilitator) {
-                    setShowTimerMenu(!showTimerMenu);
-                  } else {
-                    // Participante simples pode mutar/desmutar som
-                    setSoundMuted(!soundMuted);
-                  }
-                }}
+          {/* Timer Capsule Sincronizado */}
+          <div style={{ position: 'relative' }} ref={timerMenuRef}>
+            <div
+              onClick={() => {
+                if (isFacilitator) {
+                  setShowTimerMenu(!showTimerMenu);
+                } else {
+                  setSoundMuted(!soundMuted);
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: isTimerFinished
+                  ? 'var(--color-to-improve-bg)'
+                  : timerIsRunning
+                  ? 'var(--color-primary-subtle)'
+                  : 'var(--bg-subtle)',
+                border: isTimerFinished
+                  ? '1px solid var(--color-to-improve)'
+                  : timerIsRunning
+                  ? '1px solid var(--border-primary)'
+                  : '1px solid var(--border-subtle)',
+                padding: '0.28rem 0.65rem',
+                borderRadius: 'var(--radius-full)',
+                color: isTimerFinished ? 'var(--color-to-improve)' : 'var(--text-main)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: 'var(--shadow-sm)',
+                whiteSpace: 'nowrap',
+                animation: isTimerFinished ? 'timer-alarm-blink 1s infinite ease-in-out' : 'none',
+              }}
+              title={isFacilitator ? t('header.timer_title') : t('header.timer_mute_toggle')}
+            >
+              <Clock size={14} color={isTimerFinished ? 'var(--color-to-improve)' : 'var(--color-primary)'} />
+              <span>{formatTimer(localSeconds)}</span>
+              {timerIsRunning && (
+                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--color-primary)' }} />
+              )}
+            </div>
+
+            {/* Menu Popover do Timer para o Facilitador */}
+            {showTimerMenu && isFacilitator && (
+              <div
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  background: isTimerFinished 
-                    ? 'var(--color-to-improve-bg)' 
-                    : timerIsRunning 
-                      ? 'var(--color-primary-subtle)' 
-                      : 'var(--bg-subtle)',
-                  border: isTimerFinished 
-                    ? '1px solid var(--color-to-improve)' 
-                    : timerIsRunning 
-                      ? '1px solid var(--border-primary)' 
-                      : '1px solid var(--border-subtle)',
-                  padding: '0.38rem 0.75rem',
-                  borderRadius: 'var(--radius-full)',
-                  color: isTimerFinished ? 'var(--color-to-improve)' : 'var(--text-main)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  boxShadow: 'var(--shadow-sm)',
-                  whiteSpace: 'nowrap',
-                  animation: isTimerFinished ? 'timer-alarm-blink 1s infinite ease-in-out' : 'none',
-                }}
-                title={isFacilitator ? t('header.timer_title') : t('header.timer_mute_toggle')}
-              >
-                <Clock size={15} color={isTimerFinished ? 'var(--color-to-improve)' : 'var(--color-primary)'} />
-                <span>{formatTimer(localSeconds)}</span>
-                {timerIsRunning && (
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--color-primary)' }} />
-                )}
-              </div>
-
-              {/* Menu Popover do Timer para o Facilitador */}
-              {showTimerMenu && isFacilitator && (
-                <div style={{
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   ...(popoverAlign === 'right' ? { right: 0 } : { left: 0 }),
@@ -415,366 +611,227 @@ export const Header: React.FC<HeaderProps> = ({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.65rem',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-dim)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      {t('header.timer_menu_title')}
-                    </span>
-                    <button
-                      onClick={() => setSoundMuted(!soundMuted)}
-                      style={{
-                        background: 'transparent',
-                        border: 'none',
-                        color: soundMuted ? 'var(--text-dim)' : 'var(--color-primary)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.3rem',
-                        fontSize: '0.75rem',
-                        padding: 0,
-                      }}
-                      title={soundMuted ? t('header.timer_mute_toggle') : t('header.timer_mute_toggle')}
-                    >
-                      {soundMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
-                      <span>{soundMuted ? t('header.timer_mute_on') : t('header.timer_mute_off')}</span>
-                    </button>
-                  </div>
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      color: 'var(--text-dim)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {t('header.timer_menu_title')}
+                  </span>
+                  <button
+                    onClick={() => setSoundMuted(!soundMuted)}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: soundMuted ? 'var(--text-dim)' : 'var(--color-primary)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      fontSize: '0.75rem',
+                      padding: 0,
+                    }}
+                    title={soundMuted ? t('header.timer_mute_toggle') : t('header.timer_mute_toggle')}
+                  >
+                    {soundMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+                    <span>{soundMuted ? t('header.timer_mute_on') : t('header.timer_mute_off')}</span>
+                  </button>
+                </div>
 
-                  {/* Presets Rápidos */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.35rem' }}>
-                    {[
-                      { label: '1m', secs: 60 },
-                      { label: '3m', secs: 180 },
-                      { label: '5m', secs: 300 },
-                      { label: '10m', secs: 600 },
-                    ].map((p) => (
-                      <button
-                        key={p.secs}
-                        onClick={() => {
-                          onControlTimer?.('START', p.secs);
-                          setShowTimerMenu(false);
-                        }}
-                        style={{
-                          background: 'var(--bg-subtle)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-sm)',
-                          padding: '0.35rem 0',
-                          color: 'var(--text-main)',
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          transition: 'all var(--transition-fast)',
-                        }}
-                      >
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Controles Principais */}
-                  <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
+                {/* Presets Rápidos */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.35rem' }}>
+                  {[
+                    { label: '1m', secs: 60 },
+                    { label: '3m', secs: 180 },
+                    { label: '5m', secs: 300 },
+                    { label: '10m', secs: 600 },
+                  ].map((p) => (
                     <button
+                      key={p.secs}
                       onClick={() => {
-                        if (timerIsRunning) {
-                          onControlTimer?.('PAUSE');
-                        } else {
-                          onControlTimer?.('START', localSeconds > 0 ? localSeconds : 300);
-                        }
+                        onControlTimer?.('START', p.secs);
+                        setShowTimerMenu(false);
                       }}
                       style={{
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.4rem',
-                        background: timerIsRunning ? 'var(--color-to-improve-bg)' : 'var(--color-primary)',
-                        border: timerIsRunning ? '1px solid var(--color-to-improve)' : 'none',
-                        color: timerIsRunning ? 'var(--color-to-improve)' : '#ffffff',
-                        padding: '0.45rem',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.8rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        transition: 'all var(--transition-fast)',
-                      }}
-                    >
-                      {timerIsRunning ? <Pause size={14} /> : <Play size={14} />}
-                      <span>{timerIsRunning ? t('header.timer_pause') : t('header.timer_start')}</span>
-                    </button>
-
-                    <button
-                      onClick={() => onControlTimer?.('ADD_SECONDS', 60)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
                         background: 'var(--bg-subtle)',
                         border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-main)',
-                        padding: '0.45rem 0.65rem',
                         borderRadius: 'var(--radius-sm)',
-                        fontSize: '0.78rem',
+                        padding: '0.35rem 0',
+                        color: 'var(--text-main)',
+                        fontSize: '0.75rem',
                         fontWeight: 600,
                         cursor: 'pointer',
                         transition: 'all var(--transition-fast)',
                       }}
-                      title="Adicionar 1 minuto"
                     >
-                      <Plus size={13} />
-                      <span>1m</span>
+                      {p.label}
                     </button>
+                  ))}
+                </div>
 
-                    <button
-                      onClick={() => onControlTimer?.('RESET', 300)}
-                      style={{
-                        background: 'var(--bg-subtle)',
-                        border: '1px solid var(--border-subtle)',
-                        color: 'var(--text-main)',
-                        padding: '0.45rem 0.65rem',
-                        borderRadius: 'var(--radius-sm)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        transition: 'all var(--transition-fast)',
-                      }}
-                      title="Resetar para 5 minutos"
-                    >
-                      <RotateCcw size={13} />
-                    </button>
-                  </div>
-
-                  {/* Teste de Som */}
+                {/* Controles Principais */}
+                <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
                   <button
-                    onClick={() => soundPlayer.playAlarm(5)}
+                    onClick={() => {
+                      if (timerIsRunning) {
+                        onControlTimer?.('PAUSE');
+                      } else {
+                        onControlTimer?.('START', localSeconds > 0 ? localSeconds : 300);
+                      }
+                    }}
                     style={{
-                      background: 'transparent',
-                      border: '1px dashed var(--border-subtle)',
-                      borderRadius: 'var(--radius-sm)',
-                      padding: '0.35rem',
-                      color: 'var(--text-dim)',
-                      fontSize: '0.72rem',
-                      cursor: 'pointer',
+                      flex: 1,
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '0.35rem',
+                      gap: '0.4rem',
+                      background: timerIsRunning ? 'var(--color-to-improve-bg)' : 'var(--color-primary)',
+                      border: timerIsRunning ? '1px solid var(--color-to-improve)' : 'none',
+                      color: timerIsRunning ? 'var(--color-to-improve)' : '#ffffff',
+                      padding: '0.45rem',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
                       transition: 'all var(--transition-fast)',
                     }}
-                    title={t('header.timer_test')}
                   >
-                    <Bell size={12} />
-                    <span>{t('header.timer_test')}</span>
+                    {timerIsRunning ? <Pause size={14} /> : <Play size={14} />}
+                    <span>{timerIsRunning ? t('header.timer_pause') : t('header.timer_start')}</span>
+                  </button>
+
+                  <button
+                    onClick={() => onControlTimer?.('ADD_SECONDS', 60)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-main)',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      fontSize: '0.78rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                    title="Adicionar 1 minuto"
+                  >
+                    <Plus size={13} />
+                    <span>1m</span>
+                  </button>
+
+                  <button
+                    onClick={() => onControlTimer?.('RESET', 300)}
+                    style={{
+                      background: 'var(--bg-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      color: 'var(--text-main)',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'all var(--transition-fast)',
+                    }}
+                    title="Resetar para 5 minutos"
+                  >
+                    <RotateCcw size={13} />
                   </button>
                 </div>
-              )}
-            </div>
 
-            {/* Botão de Voltar Fase (Apenas Facilitador) */}
-            {isFacilitator && prevPhaseObj && onPrevPhase && (
-              <button
-                onClick={() => onPrevPhase(prevPhaseObj.key)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  padding: '0.42rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: 'var(--shadow-sm)',
-                  whiteSpace: 'nowrap',
-                  transition: 'all var(--transition-fast)',
-                }}
-                title={t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}
-              >
-                <ArrowLeft size={14} />
-                <span className="header-btn-text">{t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}</span>
-              </button>
-            )}
-
-            {/* Botão de Avanço de Fase (Apenas Facilitador) */}
-            {isFacilitator && nextPhaseObj && (
-              <button
-                onClick={() => onNextPhase(nextPhaseObj.key)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  background: 'var(--color-primary)',
-                  border: 'none',
-                  color: '#ffffff',
-                  padding: '0.42rem 0.85rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: 'var(--shadow-sm)',
-                  whiteSpace: 'nowrap',
-                  transition: 'all var(--transition-fast)',
-                }}
-              >
-                <span className="header-btn-text">{t('header.btn_next', { phase: nextPhaseObj.label.split('. ')[1] })}</span>
-                <ArrowRight size={14} />
-              </button>
+                {/* Teste de Som */}
+                <button
+                  onClick={() => soundPlayer.playAlarm(5)}
+                  style={{
+                    background: 'transparent',
+                    border: '1px dashed var(--border-subtle)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.35rem',
+                    color: 'var(--text-dim)',
+                    fontSize: '0.72rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    transition: 'all var(--transition-fast)',
+                  }}
+                  title={t('header.timer_test')}
+                >
+                  <Bell size={12} />
+                  <span>{t('header.timer_test')}</span>
+                </button>
+              </div>
             )}
           </div>
 
-          {/* Ferramentas Auxiliares: Convidar, Exportar, Alternar Tema, MCP */}
-          <div className="header-tools">
-            {/* Botão Compartilhar */}
+          {/* Botão de Voltar Fase (Apenas Facilitador) */}
+          {isFacilitator && prevPhaseObj && onPrevPhase && (
             <button
-              onClick={handleCopyLink}
+              onClick={() => onPrevPhase(prevPhaseObj.key)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem',
+                gap: '0.3rem',
                 background: 'var(--bg-subtle)',
                 border: '1px solid var(--border-subtle)',
                 color: 'var(--text-main)',
-                padding: '0.42rem 0.8rem',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-              }}
-              title={t('header.tooltip_invite')}
-            >
-              {copied ? <Check size={14} color="var(--color-went-well)" /> : <Share2 size={14} />}
-              <span className="header-btn-text">{copied ? t('header.btn_copied') : t('header.btn_invite')}</span>
-            </button>
-
-            {/* Exportar Markdown */}
-            <button
-              onClick={onExport}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-main)',
-                padding: '0.42rem 0.7rem',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all var(--transition-fast)',
-              }}
-              title={t('header.tooltip_export')}
-            >
-              <Download size={14} />
-              <span className="header-btn-text">{t('header.btn_export')}</span>
-            </button>
-
-            {/* Alternador de Modo Claro / Escuro */}
-            {onToggleTheme && (
-              <button
-                onClick={onToggleTheme}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  background: 'var(--bg-subtle)',
-                  border: '1px solid var(--border-subtle)',
-                  color: 'var(--text-main)',
-                  padding: '0.42rem 0.75rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)',
-                }}
-                title={theme === 'dark' ? t('header.tooltip_light') : t('header.tooltip_dark')}
-              >
-                {theme === 'dark' ? <Sun size={14} color="#fbbf24" /> : <Moon size={14} color="var(--color-primary)" />}
-                <span className="header-btn-text">{theme === 'dark' ? t('header.btn_light') : t('header.btn_dark')}</span>
-              </button>
-            )}
-
-            {/* Alternador de Idioma */}
-            <button
-              onClick={() => i18n.changeLanguage(i18n.language.startsWith('pt') ? 'en' : 'pt')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-main)',
-                padding: '0.42rem 0.55rem',
+                padding: '0.32rem 0.6rem',
                 borderRadius: 'var(--radius-md)',
                 fontSize: '0.75rem',
-                fontWeight: 800,
+                fontWeight: 600,
                 cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+                whiteSpace: 'nowrap',
                 transition: 'all var(--transition-fast)',
-                minWidth: '36px'
               }}
-              title={t('header.tooltip_lang')}
+              title={t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}
             >
-              {i18n.language.startsWith('pt') ? t('header.lang_en') : t('header.lang_pt')}
+              <ArrowLeft size={13} />
+              <span className="header-btn-text">
+                {t('header.btn_prev', { phase: prevPhaseObj.label.split('. ')[1] })}
+              </span>
             </button>
+          )}
 
-            {/* Botão de Telemetria MCP */}
-            {onToggleTelemetry && (
-              <button
-                onClick={onToggleTelemetry}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.35rem',
-                  background: 'var(--color-primary-subtle, rgba(99, 102, 241, 0.15))',
-                  border: '1px solid var(--border-primary, rgba(99, 102, 241, 0.35))',
-                  color: 'var(--color-primary)',
-                  padding: '0.42rem 0.7rem',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)',
-                }}
-                title="Telemetria e Injeção de IA via MCP"
-              >
-                <Bot size={14} />
-                <span>MCP</span>
-              </button>
-            )}
-
-            {/* Divisor vertical */}
-            <div style={{ width: 1, height: 16, background: 'var(--border-subtle)', margin: '0 0.15rem' }} />
-
-
-            {/* Link para GitHub do Projeto */}
-            <a
-              href="https://github.com/Yared98/retroyrd"
-              target="_blank"
-              rel="noopener noreferrer"
+          {/* Botão de Avanço de Fase (Apenas Facilitador) */}
+          {isFacilitator && nextPhaseObj && (
+            <button
+              onClick={() => onNextPhase(nextPhaseObj.key)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                background: 'var(--bg-subtle)',
-                border: '1px solid var(--border-subtle)',
-                color: 'var(--text-muted)',
-                padding: '0.42rem 0.55rem',
+                gap: '0.3rem',
+                background: 'var(--color-primary)',
+                border: 'none',
+                color: '#ffffff',
+                padding: '0.32rem 0.75rem',
                 borderRadius: 'var(--radius-md)',
-                textDecoration: 'none',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: 'var(--shadow-sm)',
+                whiteSpace: 'nowrap',
                 transition: 'all var(--transition-fast)',
               }}
-              className="footer-badge-link"
-              title={t('header.tooltip_github')}
-              aria-label="GitHub"
             >
-              <GithubIcon size={14} />
-            </a>
-          </div>
+              <span className="header-btn-text">
+                {t('header.btn_next', { phase: nextPhaseObj.label.split('. ')[1] })}
+              </span>
+              <ArrowRight size={13} />
+            </button>
+          )}
         </div>
       </div>
-    </header>
+    </>
   );
 };
