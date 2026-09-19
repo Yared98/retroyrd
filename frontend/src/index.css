@@ -180,18 +180,18 @@
   padding: 0;
 }
 
-body {
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
   background: var(--bg-canvas-radial, radial-gradient(circle at 50% 20%, #151d32 0%, var(--bg-canvas) 80%));
   background-attachment: fixed;
   color: var(--text-main);
   font-family: var(--font-sans);
   font-size: var(--text-base);
   line-height: var(--leading-normal);
-  min-height: 100vh;
-  overflow-x: hidden;
+  font-weight: var(--font-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: color var(--transition-smooth);
 }
 
 /* ==========================================================================

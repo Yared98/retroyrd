@@ -161,7 +161,7 @@ export default {
       light_mode: 'Modo Claro',
       dark_mode: 'Modo Escuro',
       title: 'Criar Nova Retrospectiva',
-      subtitle: 'Retrospectivas ágeis corporativas em tempo real. Auto-hospedado (Zero Cost), anonimato criptográfico e integração nativa com IA via MCP.',
+      subtitle: 'Retrospectivas ágeis corporativas em tempo real com anonimato e foco.',
       feature_safety_title: 'Segurança Psicológica:',
       feature_safety_desc: 'Checagem 1-5 estritamente anônima',
       feature_blind_title: 'Modo Oculto:',

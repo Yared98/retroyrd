@@ -161,7 +161,7 @@ export default {
       light_mode: 'Light Mode',
       dark_mode: 'Dark Mode',
       title: 'Create New Retrospective',
-      subtitle: 'Real-time corporate agile retrospectives. Self-hosted (Zero Cost), cryptographic anonymity, and native AI integration via MCP.',
+      subtitle: 'Real-time corporate agile retrospectives with psychological safety and focus.',
       feature_safety_title: 'Psychological Safety:',
       feature_safety_desc: 'Strictly anonymous 1-5 check',
       feature_blind_title: 'Hidden Mode:',
