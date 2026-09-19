@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Shield, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle, Globe } from 'lucide-react';
+import { Sparkles, Shield, ShieldCheck, EyeOff, Bot, ArrowRight, Sun, Moon, History, Trash2, ExternalLink, Share2, Check, AlertTriangle, Globe } from 'lucide-react';
 import { getRecentSessions, removeRecentSession, type RecentSession } from '../utils/recentSessions';
 import { Footer, GithubIcon } from './Footer';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
@@ -90,7 +90,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
         <div className="header-left">
           <a href="/" className="brand-logo" title="RetroYrd - Início" aria-label="RetroYrd Home">
             <div className="brand-icon-box">
-              <Sparkles size={18} />
+              <ShieldCheck size={18} />
             </div>
             <span className="brand-title">
               Retro<span style={{ color: 'var(--color-primary)' }}>Yrd</span>

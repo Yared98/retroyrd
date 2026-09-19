@@ -25,7 +25,6 @@ import {
   Sun,
   Moon,
   Bot,
-  Sparkles
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
@@ -201,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
             aria-label="RetroYrd Home"
           >
             <div className="brand-icon-box">
-              <Sparkles size={18} />
+              <ShieldCheck size={18} />
             </div>
             <span className="brand-title">
               Retro<span style={{ color: 'var(--color-primary)' }}>Yrd</span>
@@ -249,9 +248,11 @@ export const Header: React.FC<HeaderProps> = ({
                   border: '1px solid var(--color-facilitator-border)',
                   color: 'var(--color-facilitator)',
                   flexShrink: 0,
+                  cursor: 'help',
                 }}
+                title={t('header.facilitator_tooltip', 'Você é o Facilitador desta sessão')}
               >
-                {t('header.facilitator')}
+                {t('header.facilitator_short', 'FAC')}
               </span>
             )}
           </div>

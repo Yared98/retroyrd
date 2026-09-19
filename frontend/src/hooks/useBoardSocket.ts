@@ -10,7 +10,8 @@ export function useBoardSocket(boardId: string | null, facilitatorToken: string 
   const getSessionId = () => {
     let sid = sessionStorage.getItem(`retro_session_${boardId}`);
     if (!sid) {
-      sid = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      // crypto.randomUUID() para entropia criptográfica adequada
+      sid = crypto.randomUUID().replace(/-/g, '');
       sessionStorage.setItem(`retro_session_${boardId}`, sid);
     }
     return sid;

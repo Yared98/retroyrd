@@ -127,6 +127,11 @@ async fn handle_socket(
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(msg)) = ws_receiver.next().await {
             if let Message::Text(text) = msg {
+                // Limite de tamanho: previne DoS por mensagens gigantes
+                if text.len() > 65_536 {
+                    warn!("Mensagem WebSocket excessivamente grande descartada ({} bytes)", text.len());
+                    continue;
+                }
                 if let Ok(ws_msg) = serde_json::from_str::<WsMessage>(&text) {
                     process_client_message(
                         ws_msg,

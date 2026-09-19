@@ -2,6 +2,8 @@ export default {
   translation: {
     header: {
       facilitator: 'Facilitador',
+      facilitator_short: 'FAC',
+      facilitator_tooltip: 'Você é o Facilitador desta sessão',
       home_title: 'Voltar para a Página Inicial (Home)',
       phase_safety: '1. Safety Check',
       phase_brainstorm: '2. Brainstorm (Oculto)',
