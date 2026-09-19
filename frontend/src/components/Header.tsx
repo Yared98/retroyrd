@@ -24,8 +24,8 @@ import {
   Bell,
   Sun,
   Moon,
-  Home,
-  Bot
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { GithubIcon } from './Footer';
@@ -187,55 +187,73 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="retro-header">
       <div className="retro-header-grid">
         {/* Lado Esquerdo: Marca, Título & Status */}
-        <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0 }}>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span className="pulse-dot" title="Sessão em tempo real" />
-              {isFacilitator && (
-                <span style={{
-                  background: 'var(--color-facilitator-bg)',
-                  color: 'var(--color-facilitator)',
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  padding: '0.1rem 0.45rem',
-                  borderRadius: 'var(--radius-full)',
-                  border: '1px solid var(--color-facilitator-border)',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                }}>
-                  {t('header.facilitator')}
-                </span>
-              )}
+        <div className="header-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
+          <a
+            href="/"
+            onClick={(e) => {
+              if (onHome) {
+                e.preventDefault();
+                onHome();
+              }
+            }}
+            className="brand-logo"
+            title={t('header.home_title', 'Página inicial')}
+            aria-label="RetroYrd Home"
+          >
+            <div className="brand-icon-box">
+              <Sparkles size={18} />
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.15rem', minWidth: 0 }}>
-              <a
-                href="/"
-                onClick={(e) => {
-                  if (onHome) {
-                    e.preventDefault();
-                    onHome();
-                  }
-                }}
-                className="header-home-btn"
-                title={t('header.home_title')}
-                aria-label="Home"
-              >
-                <Home size={14} />
-              </a>
-              <h1 style={{
-                fontSize: '1.25rem',
-                fontWeight: 800,
+            <span className="brand-title">
+              Retro<span style={{ color: 'var(--color-primary)' }}>Yrd</span>
+            </span>
+          </a>
+
+          <EcosystemSwitcher currentApp="retro" />
+
+          <div
+            style={{
+              height: '24px',
+              width: '1px',
+              backgroundColor: 'var(--border-subtle)',
+              flexShrink: 0,
+            }}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
+            <span className="pulse-dot" title="Sessão em tempo real" />
+            <h1
+              style={{
+                fontSize: '1.05rem',
+                fontWeight: 700,
                 color: 'var(--text-main)',
-                letterSpacing: '-0.02em',
+                letterSpacing: '-0.01em',
                 margin: 0,
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-              }}>
-                {title}
-              </h1>
-              <EcosystemSwitcher currentApp="retro" />
-            </div>
+              }}
+              title={title}
+            >
+              {title}
+            </h1>
+            {isFacilitator && (
+              <span
+                style={{
+                  background: 'var(--color-facilitator-bg)',
+                  color: 'var(--color-facilitator)',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  padding: '0.12rem 0.5rem',
+                  borderRadius: 'var(--radius-full)',
+                  border: '1px solid var(--color-facilitator-border)',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  flexShrink: 0,
+                }}
+              >
+                {t('header.facilitator')}
+              </span>
+            )}
           </div>
         </div>
 
