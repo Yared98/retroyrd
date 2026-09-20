@@ -1,5 +1,6 @@
 use axum::{
     extract::State,
+    http::HeaderMap,
     response::{IntoResponse, Json},
 };
 use serde::{Deserialize, Serialize};
@@ -43,8 +44,30 @@ pub struct JsonRpcError {
     pub data: Option<Value>,
 }
 
+fn extract_facilitator_token(headers: &HeaderMap, args: &Value) -> Option<String> {
+    if let Some(token) = args.get("facilitator_token").or_else(|| args.get("token")).and_then(|v| v.as_str()) {
+        if !token.trim().is_empty() {
+            return Some(token.trim().to_string());
+        }
+    }
+    if let Some(auth) = headers.get("authorization").and_then(|v| v.to_str().ok()) {
+        if let Some(token) = auth.strip_prefix("Bearer ") {
+            if !token.trim().is_empty() {
+                return Some(token.trim().to_string());
+            }
+        }
+    }
+    if let Some(token) = headers.get("x-facilitator-token").and_then(|v| v.to_str().ok()) {
+        if !token.trim().is_empty() {
+            return Some(token.trim().to_string());
+        }
+    }
+    None
+}
+
 pub async fn handle_mcp_request(
     State(state): State<AppState>,
+    headers: HeaderMap,
     Json(req): Json<JsonRpcRequest>,
 ) -> impl IntoResponse {
     let id = req.id.clone();
@@ -67,13 +90,13 @@ pub async fn handle_mcp_request(
                     {
                         "uri": "retro://board/{board_id}/state",
                         "name": "Retrospective Board State",
-                        "description": "Full structured snapshot of columns, cards, vote counts and action items. Supports ?token={facilitator_token} for privileged access.",
+                        "description": "Full structured snapshot of columns, cards, vote counts and action items. Supports ?token={facilitator_token} or Authorization: Bearer header for privileged access.",
                         "mimeType": "application/json"
                     },
                     {
                         "uri": "retro://board/{board_id}/metrics",
                         "name": "Retrospective Board Metrics",
-                        "description": "Analytics, participation, Psychological Safety distribution and vote rankings. Supports ?token={facilitator_token}.",
+                        "description": "Analytics, participation, Psychological Safety distribution and vote rankings. Supports ?token={facilitator_token} or Authorization: Bearer header.",
                         "mimeType": "application/json"
                     }
                 ]
@@ -86,7 +109,7 @@ pub async fn handle_mcp_request(
                 .and_then(|u| u.as_str())
                 .unwrap_or("");
             
-            read_resource(&state, uri).await
+            read_resource(&state, &headers, uri).await
         }
 
         "tools/list" => {
@@ -102,7 +125,7 @@ pub async fn handle_mcp_request(
                                 "column_id": { "type": "string", "description": "Target column ID where the card will be added (optional for action items)" },
                                 "content": { "type": "string", "description": "Content of the card or action item description" },
                                 "is_action_item": { "type": "boolean", "description": "Whether this is an action item (Phase 5). Can be created collaboratively by team members or AI." },
-                                "facilitator_token": { "type": "string", "description": "Optional facilitator access token" }
+                                "facilitator_token": { "type": "string", "description": "Optional facilitator access token (or via Authorization header)" }
                             },
                             "required": ["board_id", "content"]
                         }
@@ -120,9 +143,9 @@ pub async fn handle_mcp_request(
                                     "items": { "type": "string" },
                                     "description": "List of card IDs to merge under the parent" 
                                 },
-                                "facilitator_token": { "type": "string", "description": "The facilitator access token of the retro board. Required." }
+                                "facilitator_token": { "type": "string", "description": "The facilitator access token of the retro board. Required (or via Authorization header)." }
                             },
-                            "required": ["board_id", "parent_card_id", "child_card_ids", "facilitator_token"]
+                            "required": ["board_id", "parent_card_id", "child_card_ids"]
                         }
                     },
                     {
@@ -137,9 +160,9 @@ pub async fn handle_mcp_request(
                                     "enum": ["SAFETY_CHECK", "BRAINSTORM", "GROUPING", "VOTING", "ACTION_ITEMS", "ARCHIVED"],
                                     "description": "Target phase to transition into" 
                                 },
-                                "facilitator_token": { "type": "string", "description": "The facilitator access token of the retro board. Required." }
+                                "facilitator_token": { "type": "string", "description": "The facilitator access token of the retro board. Required (or via Authorization header)." }
                             },
-                            "required": ["board_id", "target_phase", "facilitator_token"]
+                            "required": ["board_id", "target_phase"]
                         }
                     }
                 ]
@@ -148,7 +171,7 @@ pub async fn handle_mcp_request(
 
         "tools/call" => {
             let params = req.params.as_ref().cloned().unwrap_or(json!({}));
-            call_tool(&state, params).await
+            call_tool(&state, &headers, params).await
         }
 
         _ => Err(JsonRpcError {
@@ -174,8 +197,7 @@ pub async fn handle_mcp_request(
     }
 }
 
-async fn read_resource(state: &AppState, uri: &str) -> Result<Value, JsonRpcError> {
-    // Suporta URI com query param opcional: retro://board/{board_id}/{state|metrics}[?token={facilitator_token}]
+async fn read_resource(state: &AppState, headers: &HeaderMap, uri: &str) -> Result<Value, JsonRpcError> {
     let clean_uri = uri.trim_start_matches("retro://");
     let (path_part, query_part) = match clean_uri.split_once('?') {
         Some((p, q)) => (p, Some(q)),
@@ -198,21 +220,25 @@ async fn read_resource(state: &AppState, uri: &str) -> Result<Value, JsonRpcErro
         .map_err(|e| JsonRpcError { code: -32000, message: e.to_string(), data: None })?
         .ok_or_else(|| JsonRpcError { code: -32004, message: "Board not found".to_string(), data: None })?;
 
-    // Validar se o token do facilitador foi informado na query string
-    let provided_token = query_part.and_then(|q| {
+    // Validar token da query string OU dos headers HTTP (Authorization: Bearer ou x-facilitator-token)
+    let query_token = query_part.and_then(|q| {
         q.split('&').find_map(|pair| {
             let mut split = pair.split('=');
             let key = split.next()?;
             let val = split.next()?;
             if key == "token" || key == "facilitator_token" {
-                Some(val)
+                Some(val.to_string())
             } else {
                 None
             }
         })
     });
 
+    let header_token = extract_facilitator_token(headers, &Value::Null);
+    let provided_token = query_token.or(header_token);
+
     let is_facilitator = provided_token
+        .as_deref()
         .map(|t| t == board.facilitator_token)
         .unwrap_or(false);
 
@@ -305,7 +331,7 @@ async fn read_resource(state: &AppState, uri: &str) -> Result<Value, JsonRpcErro
     }
 }
 
-async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcError> {
+async fn call_tool(state: &AppState, headers: &HeaderMap, params: Value) -> Result<Value, JsonRpcError> {
     let name = params.get("name").and_then(|v| v.as_str()).unwrap_or("");
     let args = params.get("arguments").cloned().unwrap_or(json!({}));
 
@@ -314,9 +340,7 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
             let board_id = args.get("board_id").and_then(|v| v.as_str()).unwrap_or("");
             let content = args.get("content").and_then(|v| v.as_str()).unwrap_or("");
             let is_action = args.get("is_action_item").and_then(|v| v.as_bool()).unwrap_or(false);
-            let token = args.get("facilitator_token")
-                .or_else(|| args.get("token"))
-                .and_then(|v| v.as_str());
+            let token = extract_facilitator_token(headers, &args);
 
             let board = state.db.get_board(board_id)
                 .map_err(|e| JsonRpcError { code: -32000, message: e.to_string(), data: None })?
@@ -330,7 +354,7 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
                 });
             }
 
-            let is_facilitator = token.map(|t| t == board.facilitator_token).unwrap_or(false);
+            let is_facilitator = token.as_deref().map(|t| t == board.facilitator_token).unwrap_or(false);
             let now = chrono_or_now();
             let room_sender = state.get_room_sender(board_id);
 
@@ -414,15 +438,13 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
             let board_id = args.get("board_id").and_then(|v| v.as_str()).unwrap_or("");
             let parent_id = args.get("parent_card_id").and_then(|v| v.as_str()).unwrap_or("");
             let children = args.get("child_card_ids").and_then(|v| v.as_array()).cloned().unwrap_or_default();
-            let token = args.get("facilitator_token")
-                .or_else(|| args.get("token"))
-                .and_then(|v| v.as_str());
+            let token = extract_facilitator_token(headers, &args);
 
             let board = state.db.get_board(board_id)
                 .map_err(|e| JsonRpcError { code: -32000, message: e.to_string(), data: None })?
                 .ok_or_else(|| JsonRpcError { code: -32004, message: "Board not found".to_string(), data: None })?;
 
-            if token != Some(&board.facilitator_token) {
+            if token.as_deref() != Some(&board.facilitator_token) {
                 return Err(JsonRpcError {
                     code: -32001,
                     message: "Acesso negado: a ferramenta 'group_cards' requer o token de facilitador válido (facilitator_token).".to_string(),
@@ -457,15 +479,13 @@ async fn call_tool(state: &AppState, params: Value) -> Result<Value, JsonRpcErro
         "change_phase" => {
             let board_id = args.get("board_id").and_then(|v| v.as_str()).unwrap_or("");
             let target_str = args.get("target_phase").and_then(|v| v.as_str()).unwrap_or("");
-            let token = args.get("facilitator_token")
-                .or_else(|| args.get("token"))
-                .and_then(|v| v.as_str());
+            let token = extract_facilitator_token(headers, &args);
 
             let board = state.db.get_board(board_id)
                 .map_err(|e| JsonRpcError { code: -32000, message: e.to_string(), data: None })?
                 .ok_or_else(|| JsonRpcError { code: -32004, message: "Board not found".to_string(), data: None })?;
 
-            if token != Some(&board.facilitator_token) {
+            if token.as_deref() != Some(&board.facilitator_token) {
                 return Err(JsonRpcError {
                     code: -32001,
                     message: "Acesso negado: a alteração de fase requer o token de facilitador válido (facilitator_token).".to_string(),
@@ -560,25 +580,35 @@ mod tests {
     #[tokio::test]
     async fn test_mcp_read_resource_blind_mode_masking() {
         let (state, board_id, fac_token) = setup_test_state();
+        let empty_headers = HeaderMap::new();
 
         // 1. Sem token: modo cego deve mascarar o conteúdo
         let unauth_uri = format!("retro://board/{}/state", board_id);
-        let res_unauth = read_resource(&state, &unauth_uri).await.unwrap();
+        let res_unauth = read_resource(&state, &empty_headers, &unauth_uri).await.unwrap();
         let text_unauth = res_unauth["contents"][0]["text"].as_str().unwrap();
         assert!(text_unauth.contains("••••••••"), "Cards devem estar mascarados para usuário comum");
         assert!(!text_unauth.contains("Confidential retro note"));
 
-        // 2. Com token de facilitador: conteúdo completo revelado
+        // 2. Com token de facilitador na query string: conteúdo completo revelado
         let auth_uri = format!("retro://board/{}/state?token={}", board_id, fac_token);
-        let res_auth = read_resource(&state, &auth_uri).await.unwrap();
+        let res_auth = read_resource(&state, &empty_headers, &auth_uri).await.unwrap();
         let text_auth = res_auth["contents"][0]["text"].as_str().unwrap();
         assert!(text_auth.contains("Confidential retro note"), "Facilitador com token deve ver conteúdo");
         assert!(!text_auth.contains("••••••••"));
+
+        // 3. Com token de facilitador via Header Authorization: Bearer
+        let mut bearer_headers = HeaderMap::new();
+        bearer_headers.insert("authorization", format!("Bearer {}", fac_token).parse().unwrap());
+        let res_bearer = read_resource(&state, &bearer_headers, &unauth_uri).await.unwrap();
+        let text_bearer = res_bearer["contents"][0]["text"].as_str().unwrap();
+        assert!(text_bearer.contains("Confidential retro note"), "Facilitador com Authorization Header deve ver conteúdo");
     }
 
     #[tokio::test]
     async fn test_mcp_create_action_item_allowed_for_all_members_and_mcp() {
         let (state, board_id, _fac_token) = setup_test_state();
+        let empty_headers = HeaderMap::new();
+
         // Avançar board para ACTION_ITEMS
         state.db.update_board_phase(&board_id, BoardPhase::ActionItems).unwrap();
 
@@ -591,7 +621,7 @@ mod tests {
                 "is_action_item": true
             }
         });
-        let res = call_tool(&state, call).await.unwrap();
+        let res = call_tool(&state, &empty_headers, call).await.unwrap();
         let text = res["content"][0]["text"].as_str().unwrap();
         assert!(text.contains("Action Item"));
 
@@ -603,6 +633,7 @@ mod tests {
     #[tokio::test]
     async fn test_mcp_group_cards_requires_facilitator_token() {
         let (state, board_id, fac_token) = setup_test_state();
+        let empty_headers = HeaderMap::new();
         state.db.update_board_phase(&board_id, BoardPhase::Grouping).unwrap();
 
         // Sem token -> erro -32001
@@ -614,10 +645,10 @@ mod tests {
                 "child_card_ids": ["card-2"]
             }
         });
-        let err = call_tool(&state, unauth_call).await.unwrap_err();
+        let err = call_tool(&state, &empty_headers, unauth_call).await.unwrap_err();
         assert_eq!(err.code, -32001);
 
-        // Com token válido
+        // Com token válido nos args
         let auth_call = json!({
             "name": "group_cards",
             "arguments": {
@@ -627,13 +658,14 @@ mod tests {
                 "facilitator_token": fac_token
             }
         });
-        let res = call_tool(&state, auth_call).await.unwrap();
+        let res = call_tool(&state, &empty_headers, auth_call).await.unwrap();
         assert!(res["content"][0]["text"].as_str().unwrap().contains("Merged 0 cards"));
     }
 
     #[tokio::test]
     async fn test_mcp_change_phase_requires_facilitator_token() {
         let (state, board_id, fac_token) = setup_test_state();
+        let empty_headers = HeaderMap::new();
 
         // Sem token -> erro -32001
         let unauth_call = json!({
@@ -643,20 +675,21 @@ mod tests {
                 "target_phase": "GROUPING"
             }
         });
-        let err = call_tool(&state, unauth_call).await.unwrap_err();
+        let err = call_tool(&state, &empty_headers, unauth_call).await.unwrap_err();
         assert_eq!(err.code, -32001);
 
-        // Com token válido -> sucesso
-        let auth_call = json!({
+        // Com token válido no header Authorization: Bearer
+        let mut bearer_headers = HeaderMap::new();
+        bearer_headers.insert("authorization", format!("Bearer {}", fac_token).parse().unwrap());
+
+        let header_call = json!({
             "name": "change_phase",
             "arguments": {
                 "board_id": board_id,
-                "target_phase": "GROUPING",
-                "facilitator_token": fac_token
+                "target_phase": "GROUPING"
             }
         });
-        let res = call_tool(&state, auth_call).await.unwrap();
+        let res = call_tool(&state, &bearer_headers, header_call).await.unwrap();
         assert!(res["content"][0]["text"].as_str().unwrap().contains("transitioned"));
     }
 }
-
