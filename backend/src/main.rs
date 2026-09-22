@@ -11,6 +11,7 @@ use tower_http::cors::{Any, CorsLayer};
 use tower_http::services::ServeDir;
 use tracing::info;
 
+mod admin;
 mod db;
 mod fsm;
 mod mcp;
@@ -36,7 +37,7 @@ async fn main() {
     let db_path = std::env::var("DATABASE_URL").unwrap_or_else(|_| "data/retro.db".to_string());
     
     let db = Database::new(&db_path).expect("Falha ao inicializar SQLite com WAL mode");
-    let state = AppState::new(db);
+    let state = AppState::new(db, db_path.clone());
 
     // Rotina periódica de auto-purge para higienização de boards antigos (Padrão: 60 dias)
     // Aceita RETENTION_DAYS unificada ou BOARD_RETENTION_DAYS específica
@@ -78,6 +79,7 @@ async fn main() {
         .route("/health", get(health_check))
         .route("/robots.txt", get(robots_txt_handler))
         .route("/api/config", get(client_config_handler))
+        .nest("/api/admin", admin::admin_routes())
         .route("/api/boards", post(create_board_handler))
         .route("/api/boards/{id}", get(get_board_handler))
         .route("/api/boards/{id}/export", get(export_board_handler))

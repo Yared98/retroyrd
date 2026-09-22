@@ -572,7 +572,7 @@ mod tests {
         };
         db.create_card(&card).unwrap();
 
-        let state = AppState::new(db);
+        let state = AppState::new(db, ":memory:".to_string());
 
         (state, board_id, fac_token)
     }

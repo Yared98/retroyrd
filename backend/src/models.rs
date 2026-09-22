@@ -161,3 +161,41 @@ pub struct CreateBoardResponse {
     pub facilitator_token: String,
     pub invite_url: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminMetrics {
+    pub total_boards: usize,
+    pub active_boards_30d: usize,
+    pub total_cards: usize,
+    pub total_votes: usize,
+    pub total_action_items: usize,
+    pub db_size_bytes: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminBoardSummary {
+    pub id: String,
+    pub title: String,
+    pub phase: String,
+    pub card_count: usize,
+    pub action_count: usize,
+    pub created_at: i64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminMetricsResponse {
+    pub metrics: AdminMetrics,
+    pub active_boards_memory: usize,
+    pub boards: Vec<AdminBoardSummary>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminPurgeResponse {
+    pub purged_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AdminDeleteResponse {
+    pub deleted: bool,
+}
+

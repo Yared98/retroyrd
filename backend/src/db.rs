@@ -1,6 +1,9 @@
 use std::sync::{Arc, Mutex};
 use rusqlite::{params, Connection, Result};
-use crate::models::{ActionItem, Board, BoardPhase, Card, CardReaction, Column, SafetyCheckSummary};
+use crate::models::{
+    ActionItem, AdminBoardSummary, AdminMetrics, Board, BoardPhase, Card, CardReaction, Column,
+    SafetyCheckSummary,
+};
 
 #[derive(Clone)]
 pub struct Database {
@@ -587,6 +590,68 @@ impl Database {
             items.push(item?);
         }
         Ok(items)
+    }
+
+    pub fn get_admin_metrics(&self, db_path: &str) -> Result<AdminMetrics> {
+        let conn = self.conn.lock().unwrap();
+        let total_boards: usize = conn.query_row("SELECT COUNT(*) FROM boards", [], |r| r.get(0))?;
+        let now = chrono_or_now();
+        let cutoff_30d = now - (30 * 24 * 3600 * 1000);
+        let active_boards_30d: usize = conn.query_row(
+            "SELECT COUNT(*) FROM boards WHERE created_at >= ?1",
+            params![cutoff_30d],
+            |r| r.get(0),
+        )?;
+        let total_cards: usize = conn.query_row("SELECT COUNT(*) FROM cards", [], |r| r.get(0))?;
+        let total_votes: usize = conn.query_row("SELECT COUNT(*) FROM votes", [], |r| r.get(0))?;
+        let total_action_items: usize =
+            conn.query_row("SELECT COUNT(*) FROM action_items", [], |r| r.get(0))?;
+
+        let db_size_bytes = std::fs::metadata(db_path).map(|m| m.len()).unwrap_or(0);
+
+        Ok(AdminMetrics {
+            total_boards,
+            active_boards_30d,
+            total_cards,
+            total_votes,
+            total_action_items,
+            db_size_bytes,
+        })
+    }
+
+    pub fn list_admin_boards(&self, limit: usize) -> Result<Vec<AdminBoardSummary>> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT b.id, b.title, b.phase,
+                    (SELECT COUNT(*) FROM cards c WHERE c.board_id = b.id) as card_count,
+                    (SELECT COUNT(*) FROM action_items a WHERE a.board_id = b.id) as action_count,
+                    b.created_at
+             FROM boards b
+             ORDER BY b.created_at DESC
+             LIMIT ?1",
+        )?;
+
+        let rows = stmt.query_map(params![limit as i64], |row| {
+            Ok(AdminBoardSummary {
+                id: row.get(0)?,
+                title: row.get(1)?,
+                phase: row.get(2)?,
+                card_count: row.get(3)?,
+                action_count: row.get(4)?,
+                created_at: row.get(5)?,
+            })
+        })?;
+
+        let mut boards = Vec::new();
+        for b in rows {
+            boards.push(b?);
+        }
+        Ok(boards)
+    }
+
+    pub fn delete_board(&self, board_id: &str) -> Result<usize> {
+        let conn = self.conn.lock().unwrap();
+        conn.execute("DELETE FROM boards WHERE id = ?1", params![board_id])
     }
 }
 

@@ -6,6 +6,7 @@ import { SafetyCheckModal } from './components/SafetyCheckModal';
 import { ActionItemsView } from './components/ActionItemsView';
 import { McpTelemetryDrawer } from './components/McpTelemetryDrawer';
 import { CreateBoardModal } from './components/CreateBoardModal';
+import { AdminDashboard } from './components/AdminDashboard';
 import { Footer } from './components/Footer';
 import { saveRecentSession } from './utils/recentSessions';
 import { getSafetyAssessment } from './utils/safety';
@@ -237,6 +238,23 @@ export function App() {
     }
     return map;
   }, [sanitizedColumns, filteredCards]);
+
+  const [isAdminRoute] = useState(() => {
+    return (
+      window.location.pathname.startsWith('/admin') ||
+      new URLSearchParams(window.location.search).get('view') === 'admin'
+    );
+  });
+
+  // Se rota for /admin, renderizar AdminDashboard
+  if (isAdminRoute) {
+    return (
+      <AdminDashboard
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
+    );
+  }
 
   // Se não temos boardId na URL, exibir tela de criação
   if (!boardId) {
