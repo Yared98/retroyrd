@@ -63,6 +63,7 @@ pub struct Board {
     pub id: String,
     pub title: String,
     pub phase: BoardPhase,
+    #[serde(skip_serializing, default)]
     pub facilitator_token: String,
     pub max_votes_per_user: i32,
     pub timer_seconds_remaining: i32,
@@ -197,5 +198,79 @@ pub struct AdminPurgeResponse {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AdminDeleteResponse {
     pub deleted: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_board_serialization_does_not_leak_facilitator_token() {
+        let board = Board {
+            id: "01HGW".to_string(),
+            title: "Test Board".to_string(),
+            phase: BoardPhase::SafetyCheck,
+            facilitator_token: "secret_token_123".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+
+        let serialized = serde_json::to_string(&board).expect("failed to serialize board");
+        assert!(
+            !serialized.contains("secret_token_123"),
+            "facilitator_token value was leaked in serialized JSON: {}",
+            serialized
+        );
+        assert!(
+            !serialized.contains("facilitator_token"),
+            "facilitator_token key was leaked in serialized JSON: {}",
+            serialized
+        );
+
+        let val: serde_json::Value = serde_json::from_str(&serialized).expect("failed to deserialize");
+        assert!(val.get("facilitator_token").is_none());
+    }
+
+    #[test]
+    fn test_board_state_snapshot_does_not_leak_facilitator_token() {
+        let board = Board {
+            id: "01HGW".to_string(),
+            title: "Test Board".to_string(),
+            phase: BoardPhase::SafetyCheck,
+            facilitator_token: "secret_token_123".to_string(),
+            max_votes_per_user: 5,
+            timer_seconds_remaining: 300,
+            timer_is_running: false,
+            timer_ends_at: None,
+            created_at: 1000,
+        };
+
+        let snapshot = BoardStateSnapshot {
+            board,
+            columns: vec![],
+            cards: vec![],
+            action_items: vec![],
+            safety_summary: None,
+            user_voted_card_ids: vec![],
+            is_facilitator: false,
+            session_hash: "sess_hash".to_string(),
+            online_count: 1,
+        };
+
+        let serialized = serde_json::to_string(&snapshot).expect("failed to serialize snapshot");
+        assert!(
+            !serialized.contains("secret_token_123"),
+            "facilitator_token value was leaked in snapshot JSON: {}",
+            serialized
+        );
+        assert!(
+            !serialized.contains("facilitator_token"),
+            "facilitator_token key was leaked in snapshot JSON: {}",
+            serialized
+        );
+    }
 }
 

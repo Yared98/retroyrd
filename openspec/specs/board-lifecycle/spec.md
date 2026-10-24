@@ -82,6 +82,9 @@ O sistema **DEVE** rejeitar qualquer mutação incompatível com a fase corrente
 ### REQ-BL-004: Auto-Purge de Boards Expirados
 O sistema **DEVE** executar uma rotina automática de purge de boards com mais de N dias (configurável via variável de ambiente `BOARD_RETENTION_DAYS`, padrão: `60`). A rotina é executada na inicialização do servidor e a cada 24 horas via `tokio::time::interval`.
 
+### REQ-BL-005: Isolamento e Sigilo do Facilitator Token
+O `facilitator_token` é o segredo de autorização e administração da sessão. O sistema **DEVE** garantir que o token seja retornado exclusivamente no corpo da resposta `201 Created` de `POST /api/boards`. O token **NUNCA DEVE** ser serializado em respostas REST de consulta (`GET /api/boards/{id}`), em payloads WebSocket (`SYNC_STATE`, `ROOM_STATE_UPDATED`) ou em recursos públicos do servidor MCP.
+
 ---
 
 ## 4. Cenários de Aceite (GIVEN / WHEN / THEN)
@@ -109,3 +112,9 @@ O sistema **DEVE** executar uma rotina automática de purge de boards com mais d
 - **WHEN** a rotina periódica (24h) é disparada
 - **THEN** todos os boards com `created_at` anterior a 60 dias são removidos do SQLite
 - **AND** um log `purged_boards = N` é emitido se N > 0.
+
+### Cenário: Sigilo do Facilitator Token em Conexões Públicas
+- **GIVEN** um board existente com `facilitator_token` secreto
+- **WHEN** qualquer cliente (incluindo participantes anônimos sem token) conecta via WebSocket `/ws/board/{id}` ou consulta `GET /api/boards/{id}`
+- **THEN** o payload JSON de `SYNC_STATE` e `GET /api/boards/{id}` não deve conter o campo `facilitator_token`
+- **AND** apenas a flag booleana `is_facilitator` reflete se o cliente conectou com credencial válida.

@@ -9,13 +9,15 @@ Este documento define as regras de governança, restrições arquiteturais e flu
 1. **Segurança Psicológica & Anonimato Real**:
    - NUNCA associar a tabela `safety_checks` a `user_id`, `session_hash`, IP ou qualquer dado identificador.
    - Na fase `BRAINSTORM`, os cards de outros usuários NUNCA devem ter o conteúdo de texto exposto via WebSocket. O payload deve conter `isMasked: true` e texto vazio/placeholder no backend antes do envio.
-2. **Máquina de Estados Finita (FSM) Estrita**:
+2. **Privacidade & Segurança de Tokens**:
+   - O `facilitator_token` NUNCA deve ser vazado ou serializado em payloads WebSocket (`SYNC_STATE`, `ROOM_STATE_UPDATED`), snapshots de estado ou recursos públicos MCP. O token só é retornado uma única vez para o criador do board na resposta de `POST /api/boards`.
+3. **Máquina de Estados Finita (FSM) Estrita**:
    - Qualquer mutação de card, voto ou etapa DEVE ser validada contra a fase ativa do board (`SAFETY_CHECK` -> `BRAINSTORM` -> `GROUPING` -> `VOTING` -> `ACTION_ITEMS` -> `ARCHIVED`).
    - Mutações inválidas para a fase atual DEVEM ser rejeitadas no backend (erro 400 / WS rejection).
-3. **Zero Cost & Persistência Local**:
+4. **Zero Cost & Persistência Local**:
    - O banco de dados primário é SQLite em arquivo único com `PRAGMA journal_mode = WAL;`.
    - Não adicionar dependências de bancos externos em nuvem (ex: Postgres, Redis, DynamoDB). Toda a sincronização em tempo real é gerenciada em memória via Event Broker e persistida no SQLite.
-4. **Integração MCP Nativa**:
+5. **Integração MCP Nativa**:
    - O backend expõe Resources e Tools via Model Context Protocol (`@modelcontextprotocol/sdk`). Toda mutação acionada via MCP emite eventos no Event Broker que refletem imediatamente para os clientes WebSocket.
 
 ---
