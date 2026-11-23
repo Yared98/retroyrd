@@ -26,14 +26,18 @@ import {
   Moon,
   Bot,
   Users,
+  KeyRound,
 } from 'lucide-react';
 import { soundPlayer } from '../utils/sound';
 import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { useTranslation } from 'react-i18next';
 import { copyToClipboard } from '../utils/clipboard';
+import { buildFacilitatorLink, buildParticipantLink } from '../utils/facilitatorToken';
 
 interface HeaderProps {
   title: string;
+  boardId?: string;
+  facilitatorToken?: string | null;
   phase: BoardPhase;
   isFacilitator: boolean;
   timerSecondsRemaining?: number;
@@ -65,6 +69,8 @@ const getPhases = (t: any): { key: BoardPhase; label: string; icon: React.Compon
 
 export const Header: React.FC<HeaderProps> = ({
   title,
+  boardId,
+  facilitatorToken,
   phase,
   isFacilitator,
   timerSecondsRemaining = 300,
@@ -85,6 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
   onHome,
 }) => {
   const [copied, setCopied] = useState(false);
+  const [copiedFacilitator, setCopiedFacilitator] = useState(false);
   const [localSeconds, setLocalSeconds] = useState(timerSecondsRemaining);
   const [soundMuted, setSoundMuted] = useState(false);
   const [showTimerMenu, setShowTimerMenu] = useState(false);
@@ -174,18 +181,21 @@ export const Header: React.FC<HeaderProps> = ({
   const nextPhaseObj = phasesList[currentPhaseIndex + 1];
 
   const handleCopyLink = async () => {
-    let inviteUrl = window.location.href;
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('token');
-      inviteUrl = url.toString();
-    } catch {
-      // fallback to current url
-    }
+    const inviteUrl = boardId ? buildParticipantLink(boardId) : window.location.href;
     const success = await copyToClipboard(inviteUrl);
     if (success) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleCopyFacilitatorLink = async () => {
+    if (!boardId || !facilitatorToken) return;
+    const facilitatorUrl = buildFacilitatorLink(boardId, facilitatorToken);
+    const success = await copyToClipboard(facilitatorUrl);
+    if (success) {
+      setCopiedFacilitator(true);
+      setTimeout(() => setCopiedFacilitator(false), 2000);
     }
   };
 
@@ -290,6 +300,32 @@ export const Header: React.FC<HeaderProps> = ({
             {copied ? <Check size={14} color="var(--color-went-well)" /> : <Share2 size={14} />}
             <span className="header-btn-text">{copied ? t('header.btn_copied') : t('header.btn_invite')}</span>
           </button>
+
+          {/* Botão Link de Facilitador (apenas facilitador com token) */}
+          {isFacilitator && facilitatorToken && (
+            <button
+              onClick={handleCopyFacilitatorLink}
+              className="btn-secondary"
+              style={{
+                padding: '0.35rem 0.65rem',
+                fontSize: '0.78rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                background: 'var(--bg-subtle)',
+                border: '1px solid var(--border-subtle)',
+                color: 'var(--text-main)',
+                borderRadius: 'var(--radius-md)',
+                cursor: 'pointer',
+              }}
+              title={t('header.tooltip_facilitator_link')}
+            >
+              {copiedFacilitator ? <Check size={14} color="var(--color-went-well)" /> : <KeyRound size={14} />}
+              <span className="header-btn-text">
+                {copiedFacilitator ? t('header.btn_copied') : t('header.btn_facilitator_link')}
+              </span>
+            </button>
+          )}
 
           {/* Indicador de Presença Online */}
           {isConnected ? (

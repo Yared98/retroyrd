@@ -11,6 +11,7 @@ import { Footer } from './components/Footer';
 import { saveRecentSession } from './utils/recentSessions';
 import { getSafetyAssessment } from './utils/safety';
 import { initAnalytics, trackPageView, trackEvent } from './utils/analytics';
+import { consumeTokenFromUrl, getStoredFacilitatorToken, storeFacilitatorToken } from './utils/facilitatorToken';
 import { Search, User, Sparkles, Star, X, ShieldCheck } from 'lucide-react';
 import type { BoardPhase } from './types';
 import { useTranslation, Trans } from 'react-i18next';
@@ -25,10 +26,9 @@ export function App() {
   });
 
   const [facilitatorToken, setFacilitatorToken] = useState<string | null>(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) return token;
-    return sessionStorage.getItem(`facilitator_token_${boardId}`) || null;
+    const fromUrl = consumeTokenFromUrl(boardId);
+    if (fromUrl) return fromUrl;
+    return boardId ? getStoredFacilitatorToken(boardId) : null;
   });
 
   const [isCreating, setIsCreating] = useState(false);
@@ -77,10 +77,10 @@ export function App() {
     updateVoteLimit,
   } = useBoardSocket(boardId, facilitatorToken);
 
-  // Salvar token do facilitador se recebido via query param
+  // Salvar token do facilitador se recebido
   useEffect(() => {
     if (boardId && facilitatorToken) {
-      sessionStorage.setItem(`facilitator_token_${boardId}`, facilitatorToken);
+      storeFacilitatorToken(boardId, facilitatorToken);
     }
   }, [boardId, facilitatorToken]);
 
@@ -120,8 +120,8 @@ export function App() {
         });
         setBoardId(data.id);
         setFacilitatorToken(data.facilitator_token);
-        sessionStorage.setItem(`facilitator_token_${data.id}`, data.facilitator_token);
-        window.history.pushState({}, '', `/board/${data.id}?token=${data.facilitator_token}`);
+        storeFacilitatorToken(data.id, data.facilitator_token);
+        window.history.pushState({}, '', `/board/${data.id}`);
       }
     } catch (err) {
       console.error('Falha ao criar board:', err);
@@ -297,6 +297,8 @@ export function App() {
       {/* Header com Stepper e Controles */}
       <Header
         title={board.title}
+        boardId={board.id}
+        facilitatorToken={facilitatorToken}
         phase={board.phase}
         isFacilitator={is_facilitator}
         timerSecondsRemaining={board.timer_seconds_remaining}

@@ -6,6 +6,7 @@ import { EcosystemSwitcher } from './EcosystemSwitcher';
 import { McpTelemetryDrawer } from './McpTelemetryDrawer';
 import { useTranslation } from 'react-i18next';
 import { copyToClipboard } from '../utils/clipboard';
+import { storeFacilitatorToken } from '../utils/facilitatorToken';
 
 interface CreateBoardModalProps {
   onCreate: (title: string, maxVotesPerUser: number) => Promise<void>;
@@ -42,10 +43,10 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
     if (!joinCode.trim()) return;
     const cleanCode = joinCode.trim();
     const cleanToken = joinToken.trim();
-    const targetUrl = cleanToken 
-      ? `/board/${cleanCode}?token=${encodeURIComponent(cleanToken)}`
-      : `/board/${cleanCode}`;
-    window.location.href = targetUrl;
+    if (cleanToken) {
+      storeFacilitatorToken(cleanCode, cleanToken);
+    }
+    window.location.href = `/board/${cleanCode}`;
   };
 
   const handleCopyInvite = async (sessionId: string) => {
@@ -536,7 +537,7 @@ export const CreateBoardModal: React.FC<CreateBoardModalProps> = ({
                     </button>
 
                     <a
-                      href={`/board/${session.id}?token=${session.facilitatorToken}`}
+                      href={`/board/${session.id}#token=${encodeURIComponent(session.facilitatorToken || '')}`}
                       style={{
                         background: 'var(--color-primary-subtle)',
                         border: '1px solid var(--color-primary)',
