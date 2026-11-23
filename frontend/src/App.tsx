@@ -84,6 +84,16 @@ export function App() {
     }
   }, [boardId, facilitatorToken]);
 
+  // Link de facilitador (#token=) colado na mesma aba não recarrega a página: consumir no hashchange
+  useEffect(() => {
+    const onHashChange = () => {
+      const token = consumeTokenFromUrl(boardId);
+      if (token) setFacilitatorToken(token);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [boardId]);
+
   // Inicialização dinâmica do Umami Analytics (apenas se configurado via .env / backend)
   useEffect(() => {
     initAnalytics();
